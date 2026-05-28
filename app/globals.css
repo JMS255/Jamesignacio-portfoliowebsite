@@ -1687,6 +1687,46 @@ button { font-family: inherit; cursor: pointer; }
 }
 .cal-day--selected .cal-day__num { color: #1a1208; font-weight: 800; }
 
+/* Booking layout responsive */
+.booking-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  min-height: calc(100svh - 68px);
+}
+.booking-aside {
+  position: sticky;
+  top: 68px;
+  height: calc(100svh - 68px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 48px 36px;
+}
+.booking-form-col {
+  padding: 48px 48px;
+  overflow-y: auto;
+}
+
+@media (max-width: 860px) {
+  .booking-grid {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+  .booking-aside {
+    position: static;
+    height: auto;
+    padding: 32px 20px;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .booking-form-col {
+    padding: 32px 20px;
+  }
+}
+
 @media (max-width: 900px) {
   .booking-layout-inner { grid-template-columns: 1fr; }
   .booking-sidebar {

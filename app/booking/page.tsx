@@ -150,16 +150,16 @@ function BookingPage() {
   return (
     <>
       {/* Nav */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', height: navH, background: 'rgba(23,18,14,.95)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
+      <header className="booking-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(23,18,14,.95)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
         <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text }}>James Ignacio</Link>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', padding: '8px 18px', borderRadius: '999px', border: `1px solid ${border}`, color: muted, fontSize: '.78rem', fontWeight: 600, background: 'transparent', transition: 'all .15s' }}>← Back to site</Link>
       </header>
 
-      <main style={{ minHeight: `calc(100svh - ${navH})` }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '380px 1fr', minHeight: `calc(100svh - ${navH})` }}>
+      <main>
+        <div className="booking-grid">
 
           {/* ── LEFT: Calendar ── */}
-          <aside className="booking-sidebar" style={{ background: bg2, borderRight: `1px solid ${border}`, padding: '48px 36px', position: 'sticky', top: navH, height: `calc(100svh - ${navH})`, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <aside className="booking-sidebar booking-aside" style={{ background: bg2, borderRight: `1px solid ${border}` }}>
             <div>
               <p style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>Availability</p>
               <h1 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1.1, color: text }}>Book a Session</h1>
@@ -245,7 +245,7 @@ function BookingPage() {
           </aside>
 
           {/* ── RIGHT: Form ── */}
-          <div ref={formRef} style={{ padding: '48px 48px', overflowY: 'auto' }}>
+          <div ref={formRef} className="booking-form-col">
             {success ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', padding: '64px 0', textAlign: 'center' }}>
                 <div style={{ width: 60, height: 60, borderRadius: '50%', background: accent, color: '#1a1208', fontSize: '1.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
