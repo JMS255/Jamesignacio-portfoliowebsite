@@ -220,14 +220,8 @@ button { font-family: inherit; cursor: pointer; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(105deg, rgba(23,18,14,1) 42%, rgba(23,18,14,.6) 100%),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255,255,255,.012) 0px,
-      rgba(255,255,255,.012) 1px,
-      transparent 1px,
-      transparent 40px
-    );
+    linear-gradient(105deg, rgba(23,18,14,.97) 40%, rgba(23,18,14,.55) 100%),
+    url('/images/hero-bg.jpg') center center / cover no-repeat;
   z-index: 0;
 }
 .hero__inner {
