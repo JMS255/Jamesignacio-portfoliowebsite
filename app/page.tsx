@@ -1,13 +1,14 @@
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
+import GalleryCallout from '@/components/GalleryCallout'
 import StatsStrip from '@/components/StatsStrip'
+import Work from '@/components/Work'
 import Services from '@/components/Services'
 import Pricing from '@/components/Pricing'
-import Work from '@/components/Work'
 import Clients from '@/components/Clients'
 import Testimonials from '@/components/Testimonials'
-import Blog from '@/components/Blog'
 import About from '@/components/About'
+import Blog from '@/components/Blog'
 import Newsletter from '@/components/Newsletter'
 import FAQ from '@/components/FAQ'
 import Availability from '@/components/Availability'
@@ -24,14 +25,15 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <GalleryCallout />
         <StatsStrip />
+        <Work />
         <Services />
         <Pricing />
-        <Work />
         <Clients />
         <Testimonials />
-        <Blog />
         <About />
+        <Blog />
         <Newsletter />
         <FAQ />
         <Availability />
