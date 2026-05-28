@@ -1950,8 +1950,21 @@ button { font-family: inherit; cursor: pointer; }
   .footer__inner { flex-direction: column; gap: 8px; text-align: center; }
   .client-card { flex: 0 0 100%; }
   .testimonials-grid { grid-template-columns: 1fr; }
-  .stat { padding: 14px 28px; }
-  .stat__divider { width: 40px; height: 1px; }
+  .stats-strip { padding: 24px 0; }
+  .stats-strip__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .stat { padding: 16px 12px; }
+  .stat--text {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding: 16px 12px;
+  }
+  .stat__divider { display: none; }
+  .stat__num { font-size: 2rem; }
+  .stat__tag { font-size: 1rem; }
   .newsletter-form__row { flex-direction: column; }
   .newsletter-form__input { min-width: unset; border-radius: var(--rl); }
   .newsletter-form__row .btn { border-radius: var(--rl); }
