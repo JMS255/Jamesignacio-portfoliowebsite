@@ -29,7 +29,7 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-disp: 'Playfair Display', Georgia, serif;
   --nav-h: 68px;
-  --banner-h: 44px;
+  --banner-h: 40px;
   --max-w: 1080px;
   --r:  10px;
   --rl: 16px;
@@ -1982,6 +1982,16 @@ button { font-family: inherit; cursor: pointer; }
 }
 body.banner-dismissed {
   --banner-h: 0px;
+}
+.promo-banner__long { display: inline; }
+.promo-banner__short { display: none; }
+@media (max-width: 600px) {
+  :root { --banner-h: 40px; }
+  .promo-banner__long  { display: none; }
+  .promo-banner__short { display: inline; }
+  .promo-banner__inner { gap: 8px; }
+  .promo-banner__text  { font-size: .78rem; }
+  .promo-banner__cta   { font-size: .74rem; padding: 4px 10px; }
 }
 .promo-banner__inner {
   display: flex;

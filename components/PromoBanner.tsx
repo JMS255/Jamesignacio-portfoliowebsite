@@ -29,9 +29,15 @@ export default function PromoBanner() {
       <div className="promo-banner__inner">
         <span className="promo-banner__dot" aria-hidden="true" />
         <p className="promo-banner__text">
-          <strong>June only:</strong> Book online and save{' '}
-          <strong>₱500 off</strong> our Photobooth&nbsp;+ Photography Bundle.{' '}
-          <span className="promo-banner__slots">Only 5 slots left.</span>
+          <span className="promo-banner__long">
+            <strong>June only:</strong> Book online and save{' '}
+            <strong>₱500 off</strong> our Photobooth&nbsp;+ Photography Bundle.{' '}
+            <span className="promo-banner__slots">Only 5 slots left.</span>
+          </span>
+          <span className="promo-banner__short">
+            <strong>₱500 off</strong> Bundle — June only.{' '}
+            <span className="promo-banner__slots">5 slots left.</span>
+          </span>
         </p>
         <Link
           href="/booking?service=Photobooth+%2B+Photography+Bundle&promo=june500"
