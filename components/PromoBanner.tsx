@@ -9,11 +9,16 @@ export default function PromoBanner() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (!sessionStorage.getItem(BANNER_KEY)) setVisible(true)
+    if (sessionStorage.getItem(BANNER_KEY)) {
+      document.body.classList.add('banner-dismissed')
+    } else {
+      setVisible(true)
+    }
   }, [])
 
   function dismiss() {
     sessionStorage.setItem(BANNER_KEY, '1')
+    document.body.classList.add('banner-dismissed')
     setVisible(false)
   }
 

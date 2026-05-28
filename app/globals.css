@@ -29,6 +29,7 @@
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-disp: 'Playfair Display', Georgia, serif;
   --nav-h: 68px;
+  --banner-h: 44px;
   --max-w: 1080px;
   --r:  10px;
   --rl: 16px;
@@ -154,7 +155,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ===== NAV ===== */
 .nav {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: var(--banner-h); left: 0; right: 0;
   height: var(--nav-h);
   background: rgba(23,18,14,.92);
   backdrop-filter: blur(16px);
@@ -213,7 +214,7 @@ button { font-family: inherit; cursor: pointer; }
   min-height: 100svh;
   display: flex;
   align-items: center;
-  padding-top: var(--nav-h);
+  padding-top: calc(var(--nav-h) + var(--banner-h));
   overflow: hidden;
 }
 .hero__bg {
@@ -1924,7 +1925,7 @@ button { font-family: inherit; cursor: pointer; }
     display: none;
     flex-direction: column;
     position: fixed;
-    top: var(--nav-h); left: 0; right: 0;
+    top: calc(var(--nav-h) + var(--banner-h)); left: 0; right: 0;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     padding: 20px 32px;
@@ -1968,14 +1969,19 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== PROMO BANNER ===== */
 .promo-banner {
-  position: relative;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--banner-h);
   background: linear-gradient(90deg, #7c3a00, #c47a3a 50%, #7c3a00);
   color: #fff8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 48px 10px 16px;
-  z-index: 200;
+  padding: 0 48px 0 16px;
+  z-index: 201;
+}
+body.banner-dismissed {
+  --banner-h: 0px;
 }
 .promo-banner__inner {
   display: flex;
