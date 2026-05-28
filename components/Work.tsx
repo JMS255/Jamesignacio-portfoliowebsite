@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Lightbox from './Lightbox'
 
 type Filter = 'all' | 'photography' | 'web'
 
@@ -61,12 +62,20 @@ const webCards = [
   },
 ]
 
-export default function Work({ onLightboxOpen }: { onLightboxOpen: (imgs: string[], idx: number) => void }) {
-  const [filter, setFilter] = useState<Filter>('all')
+export default function Work() {
+  const [filter, setFilter]       = useState<Filter>('all')
+  const [lbOpen, setLbOpen]       = useState(false)
+  const [lbImages, setLbImages]   = useState<string[]>([])
+  const [lbIndex, setLbIndex]     = useState(0)
+
+  function openLightbox(imgs: string[], idx: number) {
+    setLbImages(imgs); setLbIndex(idx); setLbOpen(true)
+  }
 
   const allPhotoImgs = photoCards.map(c => c.img)
 
   return (
+    <>
     <section className="work section section--alt" id="work">
       <div className="container">
         <p className="section__label">Portfolio</p>
@@ -92,7 +101,7 @@ export default function Work({ onLightboxOpen }: { onLightboxOpen: (imgs: string
                 src="/images/craftifyle.png"
                 alt="Craftifyle"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in', borderRadius: 'var(--rl)' }}
-                onClick={() => onLightboxOpen(['/images/craftifyle.png'], 0)}
+                onClick={() => openLightbox(['/images/craftifyle.png'], 0)}
               />
             </div>
           </div>
@@ -117,7 +126,7 @@ export default function Work({ onLightboxOpen }: { onLightboxOpen: (imgs: string
                   src={c.img}
                   alt={c.alt}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                  onClick={() => onLightboxOpen(allPhotoImgs, i)}
+                  onClick={() => openLightbox(allPhotoImgs, i)}
                 />
               </div>
               <div className="card__body">
@@ -157,5 +166,16 @@ export default function Work({ onLightboxOpen }: { onLightboxOpen: (imgs: string
         </div>
       </div>
     </section>
+
+    {lbOpen && (
+      <Lightbox
+        images={lbImages}
+        index={lbIndex}
+        onClose={() => setLbOpen(false)}
+        onPrev={() => setLbIndex(i => Math.max(0, i - 1))}
+        onNext={() => setLbIndex(i => Math.min(lbImages.length - 1, i + 1))}
+      />
+    )}
+    </>
   )
 }

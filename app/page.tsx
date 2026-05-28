@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from 'react'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import StatsStrip from '@/components/StatsStrip'
@@ -19,30 +16,18 @@ import Contact from '@/components/Contact'
 import NowStrip from '@/components/NowStrip'
 import Footer from '@/components/Footer'
 import MessengerFloat from '@/components/MessengerFloat'
-import Lightbox from '@/components/Lightbox'
 import ScrollReveal from '@/components/ScrollReveal'
 
 export default function Home() {
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [lightboxImages, setLightboxImages] = useState<string[]>([])
-  const [lightboxIndex, setLightboxIndex] = useState(0)
-
-  function openLightbox(imgs: string[], idx: number) {
-    setLightboxImages(imgs)
-    setLightboxIndex(idx)
-    setLightboxOpen(true)
-  }
-
   return (
     <>
       <Nav />
-
       <main>
         <Hero />
         <StatsStrip />
         <Services />
         <Pricing />
-        <Work onLightboxOpen={openLightbox} />
+        <Work />
         <Clients />
         <Testimonials />
         <Blog />
@@ -53,21 +38,10 @@ export default function Home() {
         <Availability />
         <Contact />
       </main>
-
       <NowStrip />
       <Footer />
       <MessengerFloat />
       <ScrollReveal />
-
-      {lightboxOpen && (
-        <Lightbox
-          images={lightboxImages}
-          index={lightboxIndex}
-          onClose={() => setLightboxOpen(false)}
-          onPrev={() => setLightboxIndex(i => Math.max(0, i - 1))}
-          onNext={() => setLightboxIndex(i => Math.min(lightboxImages.length - 1, i + 1))}
-        />
-      )}
     </>
   )
 }
