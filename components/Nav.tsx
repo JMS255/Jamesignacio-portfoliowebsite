@@ -4,15 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 const links = [
-  { href: '#services', label: 'Services' },
+  { href: '#work',    label: 'Work' },
   { href: '#pricing', label: 'Pricing' },
-  { href: '/booking', label: 'Book' },
-  { href: '#work', label: 'Work' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '#blog', label: 'Writing' },
-  { href: '#playbooks', label: 'Playbooks' },
-  { href: '#about', label: 'About' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '#blog',    label: 'Writing' },
+  { href: '#about',   label: 'About' },
 ]
 
 export default function Nav() {
@@ -62,7 +57,7 @@ export default function Nav() {
           )
         ))}
       </nav>
-      <Link href="/booking" className="btn btn--consult nav__cta">Book a Consult</Link>
+      <Link href="/booking" className="btn btn--accent nav__cta">Hire Me →</Link>
     </header>
   )
 }

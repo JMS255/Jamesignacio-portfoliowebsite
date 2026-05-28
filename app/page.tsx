@@ -7,7 +7,6 @@ import Work from '@/components/Work'
 import Clients from '@/components/Clients'
 import Testimonials from '@/components/Testimonials'
 import Blog from '@/components/Blog'
-import Playbooks from '@/components/Playbooks'
 import About from '@/components/About'
 import Newsletter from '@/components/Newsletter'
 import FAQ from '@/components/FAQ'
@@ -32,7 +31,6 @@ export default function Home() {
         <Clients />
         <Testimonials />
         <Blog />
-        <Playbooks />
         <About />
         <Newsletter />
         <FAQ />
