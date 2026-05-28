@@ -19,10 +19,12 @@ import Footer from '@/components/Footer'
 import MessengerFloat from '@/components/MessengerFloat'
 import ScrollReveal from '@/components/ScrollReveal'
 import PromoPopup from '@/components/PromoPopup'
+import PromoBanner from '@/components/PromoBanner'
 
 export default function Home() {
   return (
     <>
+      <PromoBanner />
       <Nav />
       <main>
         <Hero />

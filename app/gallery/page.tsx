@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import PromoBanner from '@/components/PromoBanner'
 
 const SUPABASE_URL = 'https://hhsehuxycouhuygaksor.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2VodXh5Y291aHV5Z2Frc29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1ODE1MjMsImV4cCI6MjA5NTE1NzUyM30.sv-IvH1lKrr3MRMpCKwqCEKNea2Mrzk9XQdfZBz-sRY'
@@ -110,6 +111,7 @@ function GalleryPage() {
   return (
     <div style={{ minHeight: '100svh', background: s.bg, color: s.text, fontFamily: 'Inter, system-ui, sans-serif' }}>
 
+      <PromoBanner />
       {/* Nav */}
       <header style={{ position: 'sticky', top: 0, zIndex: 100, height: s.navH, background: 'rgba(23,18,14,.95)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px' }}>
         <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: s.text }}>Craftifyle</Link>
