@@ -248,9 +248,9 @@ button { font-family: inherit; cursor: pointer; }
 .hero__headline {
   display: flex;
   flex-direction: column;
-  font-size: clamp(3rem, 7.5vw, 7.5rem);
+  font-size: clamp(2.2rem, 5.5vw, 5.5rem);
   font-weight: 800;
-  line-height: 1.0;
+  line-height: 1.05;
   letter-spacing: -.03em;
   margin-bottom: 32px;
 }

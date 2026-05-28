@@ -7,13 +7,13 @@ export default function Hero() {
       <div className="hero__inner container">
         <p className="hero__location">&#9679; Zamboanga City, Philippines</p>
         <h1 className="hero__headline">
-          <span>Photographer.</span>
-          <span>Founder.</span>
-          <span>Storyteller.</span>
+          <span>Your event deserves</span>
+          <span>to look as good</span>
+          <span>as it felt.</span>
         </h1>
         <p className="hero__sub">
-          Capturing events, building brands, and creating content<br />
-          for people who want to be remembered.
+          Photobooth rentals, event photography, and content creation<br />
+          in Zamboanga City — 50+ events covered.
         </p>
         <div className="hero__actions">
           <Link href="/booking?service=Photobooth+%2B+Photography+Bundle" className="btn btn--consult">Book Online — Save ₱500 →</Link>
