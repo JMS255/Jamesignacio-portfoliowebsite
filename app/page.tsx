@@ -17,6 +17,7 @@ import NowStrip from '@/components/NowStrip'
 import Footer from '@/components/Footer'
 import MessengerFloat from '@/components/MessengerFloat'
 import ScrollReveal from '@/components/ScrollReveal'
+import PromoPopup from '@/components/PromoPopup'
 
 export default function Home() {
   return (
@@ -42,6 +43,7 @@ export default function Home() {
       <Footer />
       <MessengerFloat />
       <ScrollReveal />
+      <PromoPopup />
     </>
   )
 }

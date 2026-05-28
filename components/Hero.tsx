@@ -16,7 +16,7 @@ export default function Hero() {
           for people who want to be remembered.
         </p>
         <div className="hero__actions">
-          <Link href="/booking" className="btn btn--consult">Book a free consult</Link>
+          <Link href="/booking?service=Photobooth+%2B+Photography+Bundle" className="btn btn--consult">Book Online — Save ₱500 →</Link>
           <a href="#work" className="btn btn--ghost-light">See my work ↓</a>
         </div>
       </div>
