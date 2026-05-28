@@ -52,13 +52,13 @@ const webCards = [
     tools: 'React, Next.js, and Tailwind CSS',
   },
   {
-    url: 'https://santiagoeismavantours.netlify.app',
-    img: '/images/web/santi-drivingwebsite.png',
-    alt: 'Santiago Van Tours',
-    tag: 'Web Design',
-    title: 'Santiago Van Tours website',
-    what: 'Built a professional portfolio and booking system website for a client',
-    tools: 'HTML, CSS, JavaScript',
+    url: 'https://craftycrm-website.vercel.app',
+    img: '/images/web/craftycrm-website.png',
+    alt: 'CraftyCRM — CRM for Filipino service businesses',
+    tag: 'SaaS / Founder',
+    title: 'CraftyCRM — Built for Filipino service businesses',
+    what: 'CRM I built to manage leads, bookings, and finances — with AI that replies to clients in Taglish on Messenger, 24/7. Currently in beta.',
+    tools: 'Next.js, Supabase, AI',
   },
 ]
 

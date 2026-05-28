@@ -4,6 +4,7 @@ import GalleryCallout from '@/components/GalleryCallout'
 import StatsStrip from '@/components/StatsStrip'
 import Work from '@/components/Work'
 import Services from '@/components/Services'
+import HowItWorks from '@/components/HowItWorks'
 import Pricing from '@/components/Pricing'
 import Clients from '@/components/Clients'
 import Testimonials from '@/components/Testimonials'
@@ -29,6 +30,7 @@ export default function Home() {
         <StatsStrip />
         <Work />
         <Services />
+        <HowItWorks />
         <Pricing />
         <Clients />
         <Testimonials />
