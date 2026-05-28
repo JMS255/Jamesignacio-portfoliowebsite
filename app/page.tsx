@@ -1,3 +1,11 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Photobooth Rental & Event Photography in Zamboanga City | Craftifyle',
+  description: 'Zamboanga City\'s go-to photobooth rental and event photography service. 50+ events covered including Kenny Rogers Roasters, ADZU Fiesta, and more. Book online and save ₱500.',
+  alternates: { canonical: 'https://craftifyle.business/' },
+}
+
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import GalleryCallout from '@/components/GalleryCallout'
