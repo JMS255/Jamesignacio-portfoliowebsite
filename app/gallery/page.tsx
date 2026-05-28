@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -37,6 +37,7 @@ function GalleryPage() {
   const [lbOpen, setLbOpen]         = useState(false)
   const [lbPhotos, setLbPhotos]     = useState<string[]>([])
   const [lbIdx, setLbIdx]           = useState(0)
+  const touchStartX                 = useRef<number | null>(null)
 
   useEffect(() => {
     if (!eventSlug) { setState('search'); return }
@@ -225,19 +226,43 @@ function GalleryPage() {
 
       {/* Lightbox */}
       {lbOpen && (
-        <div onClick={() => setLbOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.93)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div
+          onClick={() => setLbOpen(false)}
+          onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={e => {
+            if (touchStartX.current === null) return
+            const diff = touchStartX.current - e.changedTouches[0].clientX
+            if (diff > 50 && lbIdx < lbPhotos.length - 1) setLbIdx(i => i + 1)
+            if (diff < -50 && lbIdx > 0) setLbIdx(i => i - 1)
+            touchStartX.current = null
+          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.96)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', touchAction: 'none' }}>
+
+          {/* Close */}
           <button onClick={() => setLbOpen(false)}
-            style={{ position: 'absolute', top: 20, right: 24, background: 'none', border: 'none', color: '#fff', fontSize: '2rem', cursor: 'pointer', opacity: .65, lineHeight: 1 }}>×</button>
+            style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,.1)', border: 'none', color: '#fff', width: 40, height: 40, borderRadius: '50%', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+
+          {/* Prev */}
           <button onClick={e => { e.stopPropagation(); setLbIdx(i => i - 1) }} disabled={lbIdx === 0}
-            style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.12)', border: 'none', color: '#fff', width: 48, height: 48, borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: lbIdx === 0 ? .2 : 1 }}>←</button>
+            style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.12)', border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: lbIdx === 0 ? .2 : 1 }}>←</button>
+
+          {/* Image */}
           <img src={lbPhotos[lbIdx]} alt="" onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '92vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: '6px', display: 'block' }} />
+            style={{ maxWidth: '92vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: '8px', display: 'block', userSelect: 'none' }} />
+
+          {/* Next */}
           <button onClick={e => { e.stopPropagation(); setLbIdx(i => i + 1) }} disabled={lbIdx === lbPhotos.length - 1}
-            style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.12)', border: 'none', color: '#fff', width: 48, height: 48, borderRadius: '50%', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: lbIdx === lbPhotos.length - 1 ? .2 : 1 }}>→</button>
-          <span style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,.5)', fontSize: '.72rem', fontWeight: 600, letterSpacing: '.08em' }}>
-            {lbIdx + 1} / {lbPhotos.length}
-          </span>
+            style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,.12)', border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%', fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: lbIdx === lbPhotos.length - 1 ? .2 : 1 }}>→</button>
+
+          {/* Counter + swipe hint on mobile */}
+          <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', textAlign: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,.6)', fontSize: '.72rem', fontWeight: 600, letterSpacing: '.08em', display: 'block' }}>
+              {lbIdx + 1} / {lbPhotos.length}
+            </span>
+            <span style={{ color: 'rgba(255,255,255,.3)', fontSize: '.65rem', display: 'block', marginTop: '4px' }}>
+              swipe to navigate
+            </span>
+          </div>
         </div>
       )}
 
