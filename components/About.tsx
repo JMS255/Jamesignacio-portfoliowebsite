@@ -1,4 +1,6 @@
-export default function About({ onOpenModal }: { onOpenModal: () => void }) {
+import Link from 'next/link'
+
+export default function About() {
   return (
     <section className="about section" id="about">
       <div className="container about__inner">
@@ -9,10 +11,7 @@ export default function About({ onOpenModal }: { onOpenModal: () => void }) {
         </div>
         <div className="about__text">
           <p className="section__label">About me</p>
-          <h2 className="about__name">
-            James<br />
-            <em>Ignacio.</em>
-          </h2>
+          <h2 className="about__name">James<br /><em>Ignacio.</em></h2>
           <p className="about__bio">
             I grew up selling ice cream in grade school to make pocket money. I was always the kid looking for a way to earn, to build something. When I got a scholarship in college, I didn&rsquo;t save the money — I bet it on an idea. That idea became Craftifyle.
           </p>
@@ -29,9 +28,9 @@ export default function About({ onOpenModal }: { onOpenModal: () => void }) {
               <span key={t} className="label-tag">{t}</span>
             ))}
           </div>
-          <button className="btn btn--consult" style={{ marginTop: '36px' }} onClick={onOpenModal}>
+          <Link href="/booking" className="btn btn--consult" style={{ marginTop: '36px', display: 'inline-flex' }}>
             Work with me →
-          </button>
+          </Link>
         </div>
       </div>
     </section>

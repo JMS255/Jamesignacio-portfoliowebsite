@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 const services = [
   { num: '01', title: 'Photobooth Rental', desc: 'Bring the fun to your event. Fully set up, operated, and packed with props — you just show up and enjoy. Perfect for parties, weddings, and corporate events.' },
   { num: '02', title: 'Event Photography', desc: 'From graduations to corporate events, I capture the real moments — candid, authentic, and worth keeping for life. Not just photos, but a record of something that mattered.' },
@@ -6,7 +8,7 @@ const services = [
   { num: '05', title: 'Web Design', desc: 'Clean, fast websites built for small businesses and personal brands. Portfolio sites, business landing pages, and booking pages — designed to look professional and turn visitors into clients.' },
 ]
 
-export default function Services({ onOpenModal }: { onOpenModal: (service: string) => void }) {
+export default function Services() {
   return (
     <section className="services section" id="services">
       <div className="container">
@@ -19,9 +21,9 @@ export default function Services({ onOpenModal }: { onOpenModal: (service: strin
                 <h3 className="service-row__title">{s.title}</h3>
                 <p className="service-row__desc">{s.desc}</p>
               </div>
-              <button className="service-row__cta" onClick={() => onOpenModal(s.title)}>
+              <Link href={`/booking?service=${encodeURIComponent(s.title)}`} className="service-row__cta">
                 Inquire →
-              </button>
+              </Link>
             </div>
           ))}
         </div>

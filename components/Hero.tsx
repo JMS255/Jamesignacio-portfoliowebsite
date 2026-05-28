@@ -1,4 +1,6 @@
-export default function Hero({ onOpenModal }: { onOpenModal: () => void }) {
+import Link from 'next/link'
+
+export default function Hero() {
   return (
     <section className="hero" id="home">
       <div className="hero__bg" aria-hidden="true" />
@@ -14,9 +16,7 @@ export default function Hero({ onOpenModal }: { onOpenModal: () => void }) {
           for people who want to be remembered.
         </p>
         <div className="hero__actions">
-          <button className="btn btn--consult" onClick={onOpenModal}>
-            Book a free consult
-          </button>
+          <Link href="/booking" className="btn btn--consult">Book a free consult</Link>
           <a href="#work" className="btn btn--ghost-light">See my work ↓</a>
         </div>
       </div>

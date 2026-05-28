@@ -15,7 +15,7 @@ const links = [
   { href: '#faq', label: 'FAQ' },
 ]
 
-export default function Nav({ onOpenModal }: { onOpenModal: () => void }) {
+export default function Nav() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
 
@@ -37,7 +37,7 @@ export default function Nav({ onOpenModal }: { onOpenModal: () => void }) {
 
   return (
     <header className="nav" id="nav">
-      <a href="#home" className="nav__logo">James Ignacio</a>
+      <Link href="/" className="nav__logo">James Ignacio</Link>
       <button
         className={`nav__toggle${open ? ' is-open' : ''}`}
         aria-label="Toggle menu"
@@ -62,9 +62,7 @@ export default function Nav({ onOpenModal }: { onOpenModal: () => void }) {
           )
         ))}
       </nav>
-      <button className="btn btn--consult nav__cta" onClick={onOpenModal}>
-        Book a Consult
-      </button>
+      <Link href="/booking" className="btn btn--consult nav__cta">Book a Consult</Link>
     </header>
   )
 }

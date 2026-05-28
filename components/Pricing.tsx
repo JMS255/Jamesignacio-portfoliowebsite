@@ -1,68 +1,15 @@
+import Link from 'next/link'
+
 const cards = [
-  {
-    tag: 'Photobooth',
-    name: 'Photobooth Rental',
-    from: 'From',
-    amount: '₱3,500',
-    items: ['3-hour minimum coverage', 'Props & backdrops included', 'Instant photo prints', 'Full setup & breakdown', 'Operator on-site'],
-    service: 'Photobooth Rental',
-    featured: false,
-    promo: false,
-  },
-  {
-    tag: 'Photography',
-    name: 'Event Photography',
-    from: 'From',
-    amount: '₱4,500',
-    items: ['3-hour event coverage', 'Fully edited photos', 'Private online gallery', 'Delivered within 48 hours', 'Commercial usage rights'],
-    service: 'Event Photography',
-    featured: true,
-    badge: 'Most Booked',
-    promo: false,
-  },
-  {
-    tag: 'Content',
-    name: 'Content Creation',
-    from: 'From',
-    amount: '₱3,000',
-    items: ['Social media photos & videos', 'Brand-ready outputs', 'Raw files included', '1 round of revisions', 'Delivered within 72 hours'],
-    service: 'Content Creation',
-    featured: false,
-    promo: false,
-  },
-  {
-    tag: 'Consultation',
-    name: 'Brand Consultation',
-    from: 'From',
-    amount: '₱1,000',
-    items: ['1-hour focused session', 'Brand strategy & positioning', 'Written action plan', 'Follow-up notes via email', 'Online or in-person'],
-    service: 'Brand Consultation',
-    featured: false,
-    promo: false,
-  },
-  {
-    tag: 'Web',
-    name: 'Web Design',
-    from: 'From',
-    amount: '₱8,000',
-    items: ['Custom design (no templates)', 'Mobile responsive', '2 rounds of revisions', 'Domain & hosting guidance', 'Delivered within 2 weeks'],
-    service: 'Web Design',
-    featured: false,
-    promo: false,
-  },
-  {
-    tag: '🎉 Promo',
-    name: 'Photobooth + Photography Bundle',
-    from: 'Save',
-    amount: '₱1,500',
-    items: ['Full photobooth setup & coverage', 'Event photography included', 'One team, one event', 'Edited photos + prints delivered', 'Limited slots available'],
-    service: '',
-    featured: false,
-    promo: true,
-  },
+  { tag: 'Photobooth', name: 'Photobooth Rental', from: 'From', amount: '₱3,500', items: ['3-hour minimum coverage', 'Props & backdrops included', 'Instant photo prints', 'Full setup & breakdown', 'Operator on-site'], service: 'Photobooth Rental', featured: false, promo: false },
+  { tag: 'Photography', name: 'Event Photography', from: 'From', amount: '₱4,500', items: ['3-hour event coverage', 'Fully edited photos', 'Private online gallery', 'Delivered within 48 hours', 'Commercial usage rights'], service: 'Event Photography', featured: true, badge: 'Most Booked', promo: false },
+  { tag: 'Content', name: 'Content Creation', from: 'From', amount: '₱3,000', items: ['Social media photos & videos', 'Brand-ready outputs', 'Raw files included', '1 round of revisions', 'Delivered within 72 hours'], service: 'Content Creation', featured: false, promo: false },
+  { tag: 'Consultation', name: 'Brand Consultation', from: 'From', amount: '₱1,000', items: ['1-hour focused session', 'Brand strategy & positioning', 'Written action plan', 'Follow-up notes via email', 'Online or in-person'], service: 'Brand Consultation', featured: false, promo: false },
+  { tag: 'Web', name: 'Web Design', from: 'From', amount: '₱8,000', items: ['Custom design (no templates)', 'Mobile responsive', '2 rounds of revisions', 'Domain & hosting guidance', 'Delivered within 2 weeks'], service: 'Web Design', featured: false, promo: false },
+  { tag: '🎉 Promo', name: 'Photobooth + Photography Bundle', from: 'Save', amount: '₱1,500', items: ['Full photobooth setup & coverage', 'Event photography included', 'One team, one event', 'Edited photos + prints delivered', 'Limited slots available'], service: '', featured: false, promo: true },
 ]
 
-export default function Pricing({ onOpenModal }: { onOpenModal: (service: string) => void }) {
+export default function Pricing() {
   return (
     <section className="pricing section section--alt" id="pricing">
       <div className="container">
@@ -72,10 +19,7 @@ export default function Pricing({ onOpenModal }: { onOpenModal: (service: string
 
         <div className="pricing-grid">
           {cards.map(c => (
-            <div
-              key={c.name}
-              className={`pricing-card${c.featured ? ' pricing-card--featured' : ''}${c.promo ? ' pricing-card--promo' : ''}`}
-            >
+            <div key={c.name} className={`pricing-card${c.featured ? ' pricing-card--featured' : ''}${c.promo ? ' pricing-card--promo' : ''}`}>
               {c.badge && <div className="pricing-card__badge">{c.badge}</div>}
               <div className="pricing-card__head">
                 <span className="label-tag label-tag--sm">{c.tag}</span>
@@ -88,9 +32,13 @@ export default function Pricing({ onOpenModal }: { onOpenModal: (service: string
               <ul className="pricing-card__list">
                 {c.items.map(item => <li key={item}>{item}</li>)}
               </ul>
-              <button className="service-row__cta" onClick={() => onOpenModal(c.service)}>
+              <Link
+                href={c.service ? `/booking?service=${encodeURIComponent(c.service)}` : '/booking'}
+                className="service-row__cta"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
                 {c.promo ? 'Grab this deal →' : 'Inquire →'}
-              </button>
+              </Link>
             </div>
           ))}
         </div>

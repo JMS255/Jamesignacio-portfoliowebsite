@@ -19,24 +19,13 @@ import Contact from '@/components/Contact'
 import NowStrip from '@/components/NowStrip'
 import Footer from '@/components/Footer'
 import MessengerFloat from '@/components/MessengerFloat'
-import ConsultModal from '@/components/ConsultModal'
 import Lightbox from '@/components/Lightbox'
 import ScrollReveal from '@/components/ScrollReveal'
 
 export default function Home() {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalService, setModalService] = useState('')
-  const [modalDate, setModalDate] = useState('')
-
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
-
-  function openModal(service = '', date = '') {
-    setModalService(service)
-    setModalDate(date)
-    setModalOpen(true)
-  }
 
   function openLightbox(imgs: string[], idx: number) {
     setLightboxImages(imgs)
@@ -46,37 +35,29 @@ export default function Home() {
 
   return (
     <>
-      <Nav onOpenModal={() => openModal()} />
+      <Nav />
 
       <main>
-        <Hero onOpenModal={() => openModal()} />
+        <Hero />
         <StatsStrip />
-        <Services onOpenModal={openModal} />
-        <Pricing onOpenModal={openModal} />
+        <Services />
+        <Pricing />
         <Work onLightboxOpen={openLightbox} />
         <Clients />
         <Testimonials />
         <Blog />
         <Playbooks />
-        <About onOpenModal={() => openModal()} />
+        <About />
         <Newsletter />
         <FAQ />
         <Availability />
-        <Contact onOpenModal={() => openModal()} />
+        <Contact />
       </main>
 
       <NowStrip />
       <Footer />
       <MessengerFloat />
       <ScrollReveal />
-
-      {modalOpen && (
-        <ConsultModal
-          preselect={modalService}
-          predate={modalDate}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
 
       {lightboxOpen && (
         <Lightbox
