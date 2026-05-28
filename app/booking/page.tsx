@@ -65,13 +65,8 @@ function BookingPage() {
       const timeMax = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
       const url = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?key=${GCAL_API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`
       const res = await fetch(url)
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        console.error('[Calendar] API error', res.status, err?.error?.message || res.statusText)
-        return
-      }
+      if (!res.ok) return
       const data = await res.json()
-      console.log('[Calendar] Fetched', (data.items || []).length, 'events for', year, month + 1, data.items)
       const newDates: string[] = []
       ;(data.items || []).forEach((ev: { start: { date?: string; dateTime?: string }; end: { date?: string; dateTime?: string } }) => {
         const s = ev.start.date || (ev.start.dateTime || '').split('T')[0]
