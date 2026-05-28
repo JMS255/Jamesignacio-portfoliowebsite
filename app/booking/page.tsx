@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import MessengerFloat from '@/components/MessengerFloat'
 
 const GCAL_API_KEY     = 'AIzaSyBXSHn11u1ZYYkm1k7RgnRtPUfD0c70SXw'
@@ -29,6 +29,7 @@ function pad(n: number) { return String(n).padStart(2, '0') }
 
 function BookingPage() {
   const searchParams = useSearchParams()
+  const router       = useRouter()
   const urlDate    = searchParams.get('date') || ''
   const urlService = searchParams.get('service') || ''
 
@@ -131,7 +132,7 @@ function BookingPage() {
           _subject: `Booking request from ${name} — ${services.join(', ')} on ${selectedDate}`,
         }),
       })
-      if (res.ok) setSuccess(true)
+      if (res.ok) router.push('/booking/success')
       else setError('Something went wrong. Please try again.')
     } catch { setError('Could not send. Check your connection.') }
     setSubmitting(false)
