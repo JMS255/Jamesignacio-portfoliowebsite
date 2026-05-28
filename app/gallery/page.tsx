@@ -191,8 +191,8 @@ function GalleryPage() {
           </div>
 
           {/* Grid */}
-          <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 24px 80px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+          <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 16px 80px' }}>
+            <div className="gallery-grid">
               {currentPhotos.map((photo, i) => {
                 const isVideo = /\.mp4$/i.test(photo.name)
                 const imgIdx  = photoUrls.indexOf(photo.url)
