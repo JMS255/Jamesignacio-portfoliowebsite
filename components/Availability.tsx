@@ -21,26 +21,43 @@ export default function Availability() {
     const key = `${year}-${month}`
     if (fetchedMonths.has(key)) return
     fetchedMonths.add(key)
+
     const timeMin = new Date(year, month, 1).toISOString()
     const timeMax = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
-    const calId   = encodeURIComponent(GCAL_CALENDAR_ID)
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?key=${GCAL_API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`
+
     try {
-      const res = await fetch(url)
+      // FreeBusy API — works regardless of who created the event
+      const res = await fetch(
+        `https://www.googleapis.com/calendar/v3/freeBusy?key=${GCAL_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            timeMin,
+            timeMax,
+            timeZone: 'Asia/Manila',
+            items: [{ id: GCAL_CALENDAR_ID }],
+          }),
+        }
+      )
       if (!res.ok) return
       const data = await res.json()
+      const busy: { start: string; end: string }[] =
+        data.calendars?.[GCAL_CALENDAR_ID]?.busy ?? []
+
       const newDates: string[] = []
-      ;(data.items || []).forEach((ev: { start: { date?: string; dateTime?: string }; end: { date?: string; dateTime?: string } }) => {
-        const startStr = ev.start.date || (ev.start.dateTime || '').split('T')[0]
-        const endStr   = ev.end.date   || (ev.end.dateTime   || '').split('T')[0]
-        if (!startStr) return
-        let cur = new Date(startStr + 'T00:00:00')
-        const stop = new Date((endStr || startStr) + 'T00:00:00')
-        while (cur < stop) {
+      busy.forEach(({ start, end }) => {
+        let cur = new Date(start)
+        cur.setHours(0, 0, 0, 0)
+        const stop = new Date(end)
+        stop.setHours(0, 0, 0, 0)
+        // Include the start date; stop before the end date (end is exclusive)
+        while (cur <= stop) {
           newDates.push(`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`)
           cur.setDate(cur.getDate() + 1)
         }
       })
+
       if (newDates.length > 0) {
         setBookedDates(prev => {
           const next = new Set(prev)
