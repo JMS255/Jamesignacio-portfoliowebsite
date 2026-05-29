@@ -3,8 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-const GCAL_API_KEY     = 'AIzaSyBXSHn11u1ZYYkm1k7RgnRtPUfD0c70SXw'
-const GCAL_CALENDAR_ID = 'craftifylephotobooth@gmail.com'
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 function pad(n: number) { return String(n).padStart(2, '0') }
@@ -21,47 +19,14 @@ export default function Availability() {
     const key = `${year}-${month}`
     if (fetchedMonths.has(key)) return
     fetchedMonths.add(key)
-
-    const timeMin = new Date(year, month, 1).toISOString()
-    const timeMax = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
-
     try {
-      // FreeBusy API — works regardless of who created the event
-      const res = await fetch(
-        `https://www.googleapis.com/calendar/v3/freeBusy?key=${GCAL_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            timeMin,
-            timeMax,
-            timeZone: 'Asia/Manila',
-            items: [{ id: GCAL_CALENDAR_ID }],
-          }),
-        }
-      )
+      const res = await fetch(`/api/calendar?year=${year}&month=${month}`)
       if (!res.ok) return
-      const data = await res.json()
-      const busy: { start: string; end: string }[] =
-        data.calendars?.[GCAL_CALENDAR_ID]?.busy ?? []
-
-      const newDates: string[] = []
-      busy.forEach(({ start, end }) => {
-        let cur = new Date(start)
-        cur.setHours(0, 0, 0, 0)
-        const stop = new Date(end)
-        stop.setHours(0, 0, 0, 0)
-        // Include the start date; stop before the end date (end is exclusive)
-        while (cur <= stop) {
-          newDates.push(`${cur.getFullYear()}-${pad(cur.getMonth()+1)}-${pad(cur.getDate())}`)
-          cur.setDate(cur.getDate() + 1)
-        }
-      })
-
-      if (newDates.length > 0) {
+      const data: { dates: string[] } = await res.json()
+      if (data.dates.length > 0) {
         setBookedDates(prev => {
           const next = new Set(prev)
-          newDates.forEach(d => next.add(d))
+          data.dates.forEach(d => next.add(d))
           return next
         })
       }
