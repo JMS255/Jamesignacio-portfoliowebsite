@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   const auth    = Buffer.from(`${process.env.XENDIT_SECRET_KEY}:`).toString('base64')
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://jamesignacio.vercel.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://craftifyle.business'
 
   const payload = {
     external_id:          bookingRef,
