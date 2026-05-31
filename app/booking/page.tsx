@@ -112,9 +112,12 @@ function BookingPage() {
   const [magnetQty, setMagnetQty] = useState(80)
   const [name, setName]         = useState('')
   const [phone, setPhone]       = useState('')
-  const [showExtra, setShowExtra] = useState(false)
-  const [eventName, setEventName] = useState('')
-  const [location, setLocation]   = useState('')
+  const [showExtra, setShowExtra]       = useState(false)
+  const [eventName, setEventName]       = useState('')
+  const [location, setLocation]         = useState('')
+  const [eventType, setEventType]       = useState('')
+  const [customEventType, setCustomET]  = useState('')
+  const [eventTime, setEventTime]       = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]         = useState('')
   const [bookingRef, setBookingRef] = useState('')
@@ -185,8 +188,9 @@ function BookingPage() {
           hours: `${hours} hours`,
           magnets: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None',
           total_estimate: `₱${totalEstimate.toLocaleString()}`,
-          event_name: eventName || '—',
-          location:   location  || '—',
+          event_type: eventType === 'Other' ? (customEventType || 'Other') : eventType || '—',
+          event_time: eventTime || '—',
+          venue:      location  || '—',
           _subject: `Booking [${ref}] — ${rec?.name} on ${selectedDate}`,
         }),
       })
@@ -576,36 +580,63 @@ function BookingPage() {
             ))}
           </div>
 
-          <button type="button" onClick={() => setShowExtra(v => !v)}
-            style={{ background: 'none', border: 'none', color: muted, fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: '0 0 20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {showExtra ? '▾' : '▸'} Add event details (optional)
-          </button>
-
-          {showExtra && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+          {/* Event type chips */}
+          <div style={{ marginBottom: '24px' }}>
+            <p style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: accent, marginBottom: '12px' }}>
+              Type of event *
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
               {[
-                { id: 'b-event', label: 'Event name',  ph: 'e.g. Grad party, company outing', val: eventName, set: setEventName },
-                { id: 'b-loc',   label: 'Location',     ph: 'Where is your event?',             val: location,  set: setLocation  },
-              ].map(f => (
-                <div key={f.id}>
-                  <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>{f.label}</label>
-                  <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                    style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
-                    onFocus={e => (e.target.style.borderColor = accent)}
-                    onBlur={e  => (e.target.style.borderColor = border)}
-                  />
-                </div>
-              ))}
+                { id: 'Graduation', icon: '🎓' },
+                { id: 'Birthday',   icon: '🎂' },
+                { id: 'Wedding',    icon: '💍' },
+                { id: 'Corporate',  icon: '🏢' },
+                { id: 'Party',      icon: '🎉' },
+                { id: 'Other',      icon: '✏️' },
+              ].map(t => {
+                const sel = eventType === t.id
+                return (
+                  <button key={t.id} type="button" onClick={() => { setEventType(t.id); if (t.id !== 'Other') setCustomET('') }}
+                    style={{ padding: '9px 16px', borderRadius: '999px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.12)' : card, color: sel ? accent : muted, fontSize: '.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all .15s' }}>
+                    <span>{t.icon}</span>{t.id}
+                  </button>
+                )
+              })}
             </div>
-          )}
+            {eventType === 'Other' && (
+              <input type="text" value={customEventType} onChange={e => setCustomET(e.target.value)} placeholder="What kind of event?"
+                style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', border: `1.5px solid ${accent}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+              />
+            )}
+          </div>
+
+          {/* Time + Venue */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+            {[
+              { id: 'b-time',  label: 'Event time',    ph: 'e.g. 2:00 PM',               val: eventTime, set: setEventTime },
+              { id: 'b-venue', label: 'Venue / location', ph: 'e.g. Rizal Hall, ADZU',    val: location,  set: setLocation  },
+            ].map(f => (
+              <div key={f.id}>
+                <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>{f.label}</label>
+                <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                  style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                  onFocus={e => (e.target.style.borderColor = accent)}
+                  onBlur={e  => (e.target.style.borderColor = border)}
+                />
+              </div>
+            ))}
+          </div>
 
           {/* Booking summary */}
           <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '12px', padding: '16px 20px', marginBottom: '20px' }}>
             {[
-              { label: 'Date',     value: selectedDate },
-              { label: 'Package',  value: rec?.name ?? '' },
-              { label: 'Duration', value: `${hours} hours` },
-              { label: 'Magnets',  value: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None' },
+              { label: 'Date',       value: selectedDate },
+              { label: 'Time',       value: eventTime || '—' },
+              { label: 'Event type', value: eventType === 'Other' ? (customEventType || 'Other') : (eventType || '—') },
+              { label: 'Venue',      value: location || '—' },
+              { label: 'Package',    value: rec?.name ?? '' },
+              { label: 'Duration',   value: `${hours} hours` },
+              { label: 'Magnets',    value: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None' },
               { label: 'Est. total', value: `₱${totalEstimate.toLocaleString()}` },
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem', padding: '4px 0' }}>
