@@ -5,28 +5,77 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import MessengerFloat from '@/components/MessengerFloat'
 
+// ── Config ──────────────────────────────────────────────────────────────────
 const GCAL_API_KEY     = 'AIzaSyBXSHn11u1ZYYkm1k7RgnRtPUfD0c70SXw'
 const GCAL_CALENDAR_ID = 'craftifylephotobooth@gmail.com'
 const FORMSPREE_ID     = 'maqkqlag'
 const DEPOSIT_AMOUNT   = 500
 
+const PHOTOGRAPHY_TIERS = [
+  { label: '30–49 guests', min: 30,  max: 49,  price: 3500 },
+  { label: '50–70 guests', min: 50,  max: 70,  price: 4000 },
+  { label: '80+ guests',   min: 80,  max: 999, price: 4500 },
+]
+const PHOTOBOOTH_BASE  = 3500
+const EXTRA_HR_SOLO    = 1000
+const EXTRA_HR_BUNDLE  = 800
+const MAGNET_RATE_LOW  = 12.5   // < 100 pcs
+const MAGNET_RATE_HIGH = 10     // 100+ pcs
+
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-const SERVICES = [
-  { value: 'Photobooth Service', icon: '📷', sub: 'Parties, weddings, corporate events', basePrice: 3500, hasHours: true  },
-  { value: 'Event Photography',  icon: '🎉', sub: 'Full coverage of your special event',  basePrice: 4500, hasHours: true  },
-  { value: 'Content Creation',   icon: '🎬', sub: 'Photos & videos for your brand',       basePrice: 3000, hasHours: false },
-  { value: 'Brand Consultation', icon: '💡', sub: 'Strategy, identity & positioning',     basePrice: 1000, hasHours: false },
-  { value: 'Web Design',         icon: '💻', sub: 'Portfolio, landing page, business site', basePrice: 8000, hasHours: false },
-]
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function pad(n: number) { return String(n).padStart(2, '0') }
+function genRef() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
 
-const DURATIONS = [
-  { label: '3 hrs', extra: 0    },
-  { label: '4 hrs', extra: 800  },
-  { label: '5 hrs', extra: 1600 },
-  { label: '6+ hrs', custom: true },
-]
+function magnetCost(qty: number) {
+  if (qty <= 0) return 0
+  return qty >= 100 ? qty * MAGNET_RATE_HIGH : qty * MAGNET_RATE_LOW
+}
 
+type Intent = 'photobooth' | 'photography' | 'both' | 'unsure'
+
+function getRecommendation(intent: Intent, paxTier: number, hours: number) {
+  const extraHrRate = intent === 'photography' ? 0 : (intent === 'photobooth' ? EXTRA_HR_SOLO : EXTRA_HR_BUNDLE)
+  const extraHrCost = Math.max(0, hours - 3) * extraHrRate
+
+  if (intent === 'photobooth') {
+    return {
+      name: 'Photobooth Service',
+      tag: 'Craftifyle',
+      includes: ['Full booth setup & breakdown', 'Props & backdrops included', 'Instant photo prints', 'Operator on-site', `${hours} hours coverage`],
+      basePrice: PHOTOBOOTH_BASE,
+      extraHrCost,
+      extraHrRate,
+      isBundle: false,
+    }
+  }
+  if (intent === 'photography') {
+    const tier = PHOTOGRAPHY_TIERS[paxTier] ?? PHOTOGRAPHY_TIERS[1]
+    return {
+      name: 'Event Photography',
+      tag: 'Craftifyle',
+      includes: ['Full event coverage', 'Fully edited photos', 'Private online gallery', 'Delivered within 48 hours', 'Commercial usage rights'],
+      basePrice: tier.price,
+      extraHrCost: 0,
+      extraHrRate: 0,
+      isBundle: false,
+    }
+  }
+  // both or unsure → bundle
+  const tier = PHOTOGRAPHY_TIERS[paxTier] ?? PHOTOGRAPHY_TIERS[1]
+  return {
+    name: 'Photobooth + Photography Bundle',
+    tag: 'Best value',
+    includes: ['Full booth setup & breakdown', 'Props, backdrops & instant prints', 'Full event photography coverage', 'Edited photos delivered within 48hrs', `${hours} hours coverage`],
+    basePrice: PHOTOBOOTH_BASE + tier.price,
+    extraHrCost,
+    extraHrRate: EXTRA_HR_BUNDLE,
+    isBundle: true,
+  }
+}
+
+// ── Color tokens ─────────────────────────────────────────────────────────────
 const bg    = '#17120e'
 const bg2   = '#1e1710'
 const card  = '#251c13'
@@ -35,83 +84,59 @@ const text  = '#ede5d8'
 const muted = '#9a8b7a'
 const accent= '#c47a3a'
 
-function pad(n: number) { return String(n).padStart(2, '0') }
-function genRef() { return Math.random().toString(36).slice(2,8).toUpperCase() }
-
-function ProgressBar({ step }: { step: number }) {
-  const steps = ['Date', 'Service', 'Contact']
+// ── Progress bar ─────────────────────────────────────────────────────────────
+function ProgressBar({ step, total }: { step: number; total: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, padding: '20px 24px', borderBottom: `1px solid ${border}`, background: bg2 }}>
-      {steps.map((label, i) => {
-        const idx = i + 1
-        const done   = step > idx
-        const active = step === idx
-        return (
-          <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, fontSize: '.8rem', transition: 'all .2s',
-                background: done ? accent : active ? accent : 'transparent',
-                border: `2px solid ${done || active ? accent : border}`,
-                color: done || active ? '#1a1208' : muted,
-              }}>
-                {done ? '✓' : idx}
-              </div>
-              <span style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: active ? accent : done ? accent : muted }}>{label}</span>
-            </div>
-            {i < steps.length - 1 && (
-              <div style={{ width: 60, height: 2, background: step > idx ? accent : border, margin: '0 8px', marginBottom: '22px', transition: 'background .3s' }} />
-            )}
-          </div>
-        )
-      })}
+    <div style={{ height: 3, background: border, width: '100%' }}>
+      <div style={{ height: '100%', background: accent, width: `${(step / total) * 100}%`, transition: 'width .4s ease' }} />
     </div>
   )
 }
 
+// ── Main component ────────────────────────────────────────────────────────────
 function BookingPage() {
   const searchParams = useSearchParams()
-  const urlDate    = searchParams.get('date') || ''
-  const urlService = searchParams.get('service') || ''
+  const urlDate = searchParams.get('date') || ''
 
   const today = new Date(); today.setHours(0,0,0,0)
   const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`
 
-  const [step, setStep]           = useState(urlDate ? 2 : 1)
-  const [viewYear,  setViewYear]  = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth())
-  const [selectedDate, setDate]   = useState(urlDate)
-  const [bookedDates, setBooked]  = useState(new Set<string>())
-  const fetched = useRef(new Set<string>())
-
-  const [services,  setServices]  = useState<string[]>(urlService ? [urlService] : [])
-  const [durIdx,    setDurIdx]    = useState(0)
-
-  const [name,      setName]      = useState('')
-  const [phone,     setPhone]     = useState('')
-  const [eventName, setEventName] = useState('')
-  const [location,  setLocation]  = useState('')
-  const [details,   setDetails]   = useState('')
+  // wizard state
+  const [step, setStep]         = useState(urlDate ? 2 : 1)  // 1=date 2=intent 3=pax 4=hours 5=recommend 6=contact 7=success
+  const [selectedDate, setDate] = useState(urlDate)
+  const [intent, setIntent]     = useState<Intent | null>(null)
+  const [paxTier, setPaxTier]   = useState<number | null>(null)
+  const [hours, setHours]       = useState(3)
+  const [magnets, setMagnets]   = useState(false)
+  const [magnetQty, setMagnetQty] = useState(80)
+  const [name, setName]         = useState('')
+  const [phone, setPhone]       = useState('')
   const [showExtra, setShowExtra] = useState(false)
-
-  const [error,      setError]      = useState('')
+  const [eventName, setEventName] = useState('')
+  const [location, setLocation]   = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError]         = useState('')
   const [bookingRef, setBookingRef] = useState('')
   const [payLoading, setPayLoading] = useState(false)
+
+  // calendar state
+  const [viewYear,  setViewYear]  = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
+  const [bookedDates, setBooked]  = useState(new Set<string>())
+  const fetched = useRef(new Set<string>())
 
   const fetchBooked = useCallback(async (year: number, month: number) => {
     const key = `${year}-${month}`
     if (fetched.current.has(key)) return
     fetched.current.add(key)
     try {
-      const calId  = encodeURIComponent(GCAL_CALENDAR_ID)
-      const tMin   = new Date(year, month, 1).toISOString()
-      const tMax   = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
-      const url    = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?key=${GCAL_API_KEY}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime`
-      const res    = await fetch(url)
+      const calId = encodeURIComponent(GCAL_CALENDAR_ID)
+      const tMin  = new Date(year, month, 1).toISOString()
+      const tMax  = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
+      const url   = `https://www.googleapis.com/calendar/v3/calendars/${calId}/events?key=${GCAL_API_KEY}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime`
+      const res   = await fetch(url)
       if (!res.ok) return
-      const data   = await res.json()
+      const data  = await res.json()
       const dates: string[] = []
       ;(data.items || []).forEach((ev: { start: { date?: string; dateTime?: string }; end: { date?: string; dateTime?: string } }) => {
         const s = ev.start.date || (ev.start.dateTime || '').split('T')[0]
@@ -130,16 +155,16 @@ function BookingPage() {
 
   useEffect(() => { fetchBooked(viewYear, viewMonth) }, [viewYear, viewMonth, fetchBooked])
 
-  const firstWeekday  = new Date(viewYear, viewMonth, 1).getDay()
-  const daysInMonth   = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const firstWeekday   = new Date(viewYear, viewMonth, 1).getDay()
+  const daysInMonth    = new Date(viewYear, viewMonth + 1, 0).getDate()
   const isPrevDisabled = viewYear === today.getFullYear() && viewMonth <= today.getMonth()
 
-  const showDuration = services.some(sv => SERVICES.find(o => o.value === sv)?.hasHours)
-  const dur = DURATIONS[durIdx]
-  const estimate = dur.custom ? null : services.reduce((sum, sv) => {
-    const o = SERVICES.find(s => s.value === sv)
-    return sum + (o ? o.basePrice + (o.hasHours ? (dur.extra ?? 0) : 0) : 0)
-  }, 0)
+  // derived
+  const rec          = intent ? getRecommendation(intent, paxTier ?? 1, hours) : null
+  const magCost      = magnets ? magnetCost(magnetQty) : 0
+  const totalEstimate = rec ? rec.basePrice + rec.extraHrCost + magCost : 0
+
+  const totalSteps = intent === 'photobooth' ? 5 : 6  // photobooth skips PAX step
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -152,16 +177,19 @@ function BookingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          name, phone, _replyto: '',
-          services: services.join(', '),
-          duration: dur.custom ? '6+ hrs (custom quote)' : dur.label,
-          price_estimate: estimate ? `₱${estimate.toLocaleString()} starting` : 'Custom quote needed',
-          date: selectedDate, event_name: eventName, location, details,
+          name, phone,
           booking_ref: ref,
-          _subject: `Booking [${ref}] from ${name} — ${services.join(', ')} on ${selectedDate}`,
+          date: selectedDate,
+          package: rec?.name,
+          hours: `${hours} hours`,
+          magnets: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None',
+          total_estimate: `₱${totalEstimate.toLocaleString()}`,
+          event_name: eventName || '—',
+          location:   location  || '—',
+          _subject: `Booking [${ref}] — ${rec?.name} on ${selectedDate}`,
         }),
       })
-      if (res.ok) { setBookingRef(ref); setStep(4) }
+      if (res.ok) { setBookingRef(ref); setStep(7) }
       else setError('Something went wrong. Please try again.')
     } catch { setError('Could not send. Check your connection.') }
     setSubmitting(false)
@@ -173,13 +201,7 @@ function BookingPage() {
       const res = await fetch('/api/xendit/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingRef,
-          serviceLabel: services.join(' + '),
-          depositAmount: DEPOSIT_AMOUNT,
-          name,
-          phone,
-        }),
+        body: JSON.stringify({ bookingRef, serviceLabel: rec?.name, depositAmount: DEPOSIT_AMOUNT, name, phone }),
       })
       const data = await res.json()
       if (data.invoiceUrl) window.location.href = data.invoiceUrl
@@ -188,227 +210,425 @@ function BookingPage() {
     setPayLoading(false)
   }
 
-  /* ── Step 1: Calendar ── */
+  // ── Shared header ──────────────────────────────────────────────────────────
+  function Header({ showBack = false, backFn }: { showBack?: boolean; backFn?: () => void }) {
+    return (
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.97)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
+        <div style={{ maxWidth: 620, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Link href="/" style={{ fontSize: '.78rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
+          {showBack
+            ? <button onClick={backFn} style={{ background: 'none', border: 'none', color: muted, fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
+            : <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back to site</Link>
+          }
+        </div>
+        <ProgressBar step={step - 1} total={totalSteps} />
+      </header>
+    )
+  }
+
+  // ── Wrapper ────────────────────────────────────────────────────────────────
+  function Wrap({ children }: { children: React.ReactNode }) {
+    return (
+      <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto' }}>{children}</div>
+      </main>
+    )
+  }
+
+  // ── Q label ────────────────────────────────────────────────────────────────
+  function QLabel({ q, title, sub }: { q: string; title: string; sub?: string }) {
+    return (
+      <div style={{ marginBottom: '32px' }}>
+        <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>{q}</p>
+        <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: sub ? '8px' : 0 }}>{title}</h1>
+        {sub && <p style={{ fontSize: '.88rem', color: muted }}>{sub}</p>}
+      </div>
+    )
+  }
+
+  // ── Date summary pill ──────────────────────────────────────────────────────
+  function DatePill() {
+    if (!selectedDate) return null
+    return (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '999px', background: 'rgba(196,122,58,.1)', border: `1px solid rgba(196,122,58,.25)`, marginBottom: '24px' }}>
+        <span style={{ fontSize: '.85rem' }}>📅</span>
+        <span style={{ fontSize: '.82rem', fontWeight: 700, color: accent }}>{selectedDate}</span>
+      </div>
+    )
+  }
+
+  // ── STEP 1: Date ───────────────────────────────────────────────────────────
   if (step === 1) return (
     <>
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.95)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
-          <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back</Link>
+      <Header />
+      <Wrap>
+        <QLabel q="Question 1" title="When's your event?" sub="Pick an available date. Amber dates are taken." />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <button onClick={() => { if (viewMonth === 0) { setViewYear(y=>y-1); setViewMonth(11) } else setViewMonth(m=>m-1) }}
+            disabled={isPrevDisabled}
+            style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isPrevDisabled ? .3 : 1, fontSize: '1rem' }}>←</button>
+          <span style={{ fontWeight: 800, fontSize: '1.05rem', color: text }}>{MONTHS[viewMonth]} {viewYear}</span>
+          <button onClick={() => { if (viewMonth === 11) { setViewYear(y=>y+1); setViewMonth(0) } else setViewMonth(m=>m+1) }}
+            style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>→</button>
         </div>
-        <ProgressBar step={1} />
-      </header>
 
-      <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>
-          <p style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>Step 1 of 3</p>
-          <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: '8px' }}>Pick a date.</h1>
-          <p style={{ fontSize: '.88rem', color: muted, marginBottom: '36px' }}>Choose an available date for your session. Amber dates are already booked.</p>
-
-          {/* Month nav */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <button onClick={() => { if (viewMonth === 0) { setViewYear(y=>y-1); setViewMonth(11) } else setViewMonth(m=>m-1) }}
-              disabled={isPrevDisabled}
-              style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isPrevDisabled ? .3 : 1, fontSize: '1rem' }}>←</button>
-            <span style={{ fontWeight: 800, fontSize: '1.1rem', color: text }}>{MONTHS[viewMonth]} {viewYear}</span>
-            <button onClick={() => { if (viewMonth === 11) { setViewYear(y=>y+1); setViewMonth(0) } else setViewMonth(m=>m+1) }}
-              style={{ width: 36, height: 36, borderRadius: '50%', border: `1px solid ${border}`, background: card, color: muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>→</button>
-          </div>
-
-          {/* Weekday headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '4px', marginBottom: '6px' }}>
-            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: '.62rem', fontWeight: 700, color: muted, padding: '4px 0', letterSpacing: '.06em' }}>{d}</div>
-            ))}
-          </div>
-
-          {/* Calendar grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '4px', marginBottom: '28px' }}>
-            {Array.from({ length: firstWeekday }).map((_,i) => <div key={`e${i}`} />)}
-            {Array.from({ length: daysInMonth }).map((_,idx) => {
-              const d       = idx + 1
-              const dateStr = `${viewYear}-${pad(viewMonth+1)}-${pad(d)}`
-              const fmt     = `${MONTHS[viewMonth]} ${d}, ${viewYear}`
-              const isPast  = dateStr < todayStr
-              const isToday = dateStr === todayStr
-              const isBooked= bookedDates.has(dateStr)
-              const isSel   = fmt === selectedDate
-
-              let bgC = card, bdrC = border, colC = text, cur: string = 'pointer', op = 1
-              if (isPast)    { op = .25; cur = 'default' }
-              else if (isBooked) { bgC = 'rgba(196,122,58,.1)'; bdrC = 'rgba(196,122,58,.3)'; colC = accent; cur = 'not-allowed' }
-              else if (isSel)    { bgC = accent; bdrC = accent; colC = '#1a1208' }
-              else if (isToday)  { bdrC = accent }
-
-              return (
-                <div key={d} onClick={() => !isPast && !isBooked && setDate(fmt)}
-                  style={{ aspectRatio: '1', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.88rem', fontWeight: isSel ? 800 : 500, border: `1.5px solid ${bdrC}`, background: bgC, color: colC, cursor: cur, opacity: op, transition: 'all .12s' }}>
-                  {d}
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '36px' }}>
-            {[{label:'Available',bg:card,bdr:border},{label:'Booked',bg:'rgba(196,122,58,.1)',bdr:'rgba(196,122,58,.3)'},{label:'Selected',bg:accent,bdr:accent}].map(l => (
-              <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '.7rem', color: muted }}>
-                <span style={{ width: 12, height: 12, borderRadius: '3px', background: l.bg, border: `1px solid ${l.bdr}`, flexShrink: 0 }} />{l.label}
-              </span>
-            ))}
-          </div>
-
-          <button onClick={() => setStep(2)} disabled={!selectedDate}
-            style={{ width: '100%', padding: '16px', borderRadius: '999px', background: selectedDate ? accent : border, color: selectedDate ? '#1a1208' : muted, fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: selectedDate ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all .2s' }}>
-            {selectedDate ? `Continue with ${selectedDate} →` : 'Select a date to continue'}
-          </button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '4px', marginBottom: '6px' }}>
+          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+            <div key={d} style={{ textAlign: 'center', fontSize: '.58rem', fontWeight: 700, color: muted, padding: '4px 0', letterSpacing: '.06em' }}>{d}</div>
+          ))}
         </div>
-      </main>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '4px', marginBottom: '24px' }}>
+          {Array.from({ length: firstWeekday }).map((_,i) => <div key={`e${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_,idx) => {
+            const d       = idx + 1
+            const dateStr = `${viewYear}-${pad(viewMonth+1)}-${pad(d)}`
+            const fmt     = `${MONTHS[viewMonth]} ${d}, ${viewYear}`
+            const isPast  = dateStr < todayStr
+            const isToday = dateStr === todayStr
+            const isBooked= bookedDates.has(dateStr)
+            const isSel   = fmt === selectedDate
+            let bgC = card, bdrC = border, colC = text, cur = 'pointer', op = 1
+            if (isPast)    { op = .25; cur = 'default' }
+            else if (isBooked) { bgC = 'rgba(196,122,58,.1)'; bdrC = 'rgba(196,122,58,.3)'; colC = accent; cur = 'not-allowed' }
+            else if (isSel)    { bgC = accent; bdrC = accent; colC = '#1a1208' }
+            else if (isToday)  { bdrC = accent }
+            return (
+              <div key={d} onClick={() => !isPast && !isBooked && setDate(fmt)}
+                style={{ aspectRatio: '1', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.88rem', fontWeight: isSel ? 800 : 500, border: `1.5px solid ${bdrC}`, background: bgC, color: colC, cursor: cur, opacity: op, transition: 'all .12s' }}>
+                {d}
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '32px' }}>
+          {[{l:'Available',bg:card,bdr:border},{l:'Booked',bg:'rgba(196,122,58,.1)',bdr:'rgba(196,122,58,.3)'},{l:'Selected',bg:accent,bdr:accent}].map(x => (
+            <span key={x.l} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '.7rem', color: muted }}>
+              <span style={{ width: 12, height: 12, borderRadius: '3px', background: x.bg, border: `1px solid ${x.bdr}`, flexShrink: 0 }} />{x.l}
+            </span>
+          ))}
+        </div>
+
+        <button onClick={() => setStep(2)} disabled={!selectedDate}
+          style={{ width: '100%', padding: '16px', borderRadius: '999px', background: selectedDate ? accent : border, color: selectedDate ? '#1a1208' : muted, fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: selectedDate ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all .2s' }}>
+          {selectedDate ? `Continue with ${selectedDate} →` : 'Select a date to continue'}
+        </button>
+      </Wrap>
       <MessengerFloat />
     </>
   )
 
-  /* ── Step 2: Service ── */
-  if (step === 2) return (
+  // ── STEP 2: Intent ─────────────────────────────────────────────────────────
+  if (step === 2) {
+    const options: { id: Intent; icon: string; label: string; sub: string }[] = [
+      { id: 'photobooth',  icon: '📷', label: 'Photobooth only',  sub: 'Just the booth, props & prints' },
+      { id: 'photography', icon: '🎉', label: 'Photography only', sub: 'Full coverage of my event' },
+      { id: 'both',        icon: '✨', label: 'Both',             sub: 'Photobooth + photographer' },
+      { id: 'unsure',      icon: '🤔', label: 'Not sure yet',     sub: 'Help me figure it out' },
+    ]
+    return (
+      <>
+        <Header showBack backFn={() => setStep(1)} />
+        <Wrap>
+          <DatePill />
+          <QLabel q="Question 2" title="What are you looking for?" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
+            {options.map(o => {
+              const sel = intent === o.id
+              return (
+                <button key={o.id} onClick={() => { setIntent(o.id); setStep(o.id === 'photobooth' ? 4 : 3) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 20px', borderRadius: '14px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'all .15s' }}>
+                  <span style={{ fontSize: '1.6rem', flexShrink: 0 }}>{o.icon}</span>
+                  <span style={{ flex: 1 }}>
+                    <strong style={{ display: 'block', fontSize: '1rem', fontWeight: 700, color: text }}>{o.label}</strong>
+                    <small style={{ fontSize: '.78rem', color: muted }}>{o.sub}</small>
+                  </span>
+                  <span style={{ color: muted, fontSize: '1rem' }}>→</span>
+                </button>
+              )
+            })}
+          </div>
+        </Wrap>
+        <MessengerFloat />
+      </>
+    )
+  }
+
+  // ── STEP 3: PAX (photography / both only) ──────────────────────────────────
+  if (step === 3) return (
     <>
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.95)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
-          <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back</Link>
+      <Header showBack backFn={() => setStep(2)} />
+      <Wrap>
+        <DatePill />
+        <QLabel q="Question 3" title="How many guests are you expecting?" sub="This helps me recommend the right photography package." />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
+          {PHOTOGRAPHY_TIERS.map((tier, i) => {
+            const sel = paxTier === i
+            return (
+              <button key={tier.label} onClick={() => { setPaxTier(i); setStep(4) }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderRadius: '14px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
+                <strong style={{ fontSize: '1rem', fontWeight: 700, color: text }}>{tier.label}</strong>
+                <span style={{ fontSize: '.85rem', fontWeight: 700, color: accent }}>₱{tier.price.toLocaleString()}</span>
+              </button>
+            )
+          })}
         </div>
-        <ProgressBar step={2} />
-      </header>
+      </Wrap>
+      <MessengerFloat />
+    </>
+  )
 
-      <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>
-
-          {/* Date summary pill */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '999px', background: 'rgba(196,122,58,.1)', border: `1px solid rgba(196,122,58,.25)`, marginBottom: '28px' }}>
-            <span style={{ fontSize: '.85rem' }}>📅</span>
-            <span style={{ fontSize: '.82rem', fontWeight: 700, color: accent }}>{selectedDate}</span>
-          </div>
-
-          <p style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>Step 2 of 3</p>
-          <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: '8px' }}>What do you need?</h1>
-          <p style={{ fontSize: '.88rem', color: muted, marginBottom: '28px' }}>Pick one or more services. You can select multiple.</p>
-
-          {/* Service cards */}
-          <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: accent, marginBottom: '10px' }}>Craftifyle — Zamboanga City</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            {SERVICES.slice(0, 2).map(o => {
-              const checked = services.includes(o.value)
+  // ── STEP 4: Hours ──────────────────────────────────────────────────────────
+  if (step === 4) {
+    const hourOptions = [3, 4, 5, 6]
+    const extraRate = intent === 'photobooth' ? EXTRA_HR_SOLO : EXTRA_HR_BUNDLE
+    return (
+      <>
+        <Header showBack backFn={() => setStep(intent === 'photobooth' ? 2 : 3)} />
+        <Wrap>
+          <DatePill />
+          <QLabel q={intent === 'photobooth' ? 'Question 3' : 'Question 4'} title="How many hours do you need?" sub="Base package is 3 hours. Extra hours can be added." />
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+            {hourOptions.map(h => {
+              const sel = hours === h
+              const label = h === 6 ? '6+ hrs' : `${h} hrs`
+              const extra = h <= 3 ? null : `+₱${((h - 3) * extraRate).toLocaleString()}`
               return (
-                <button key={o.value} type="button" onClick={() => setServices(prev => prev.includes(o.value) ? prev.filter(s => s !== o.value) : [...prev, o.value])}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: `1.5px solid ${checked ? accent : border}`, borderRadius: '12px', background: checked ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'all .15s' }}>
-                  <span style={{ width: 20, height: 20, borderRadius: '5px', border: `2px solid ${checked ? accent : muted}`, background: checked ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
-                    {checked && <span style={{ color: '#1a1208', fontSize: '.7rem', fontWeight: 900 }}>✓</span>}
-                  </span>
-                  <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{o.icon}</span>
-                  <span style={{ flex: 1 }}>
-                    <strong style={{ display: 'block', fontSize: '.9rem', fontWeight: 700, color: text }}>{o.value}</strong>
-                    <small style={{ fontSize: '.75rem', color: muted }}>{o.sub}</small>
-                  </span>
-                  <span style={{ fontSize: '.8rem', fontWeight: 700, color: accent, whiteSpace: 'nowrap' }}>
-                    ₱{o.basePrice.toLocaleString()}{o.hasHours ? '/3hrs' : ' flat'}
-                  </span>
+                <button key={h} onClick={() => setHours(h)}
+                  style={{ flex: 1, minWidth: '80px', padding: '16px 12px', borderRadius: '12px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center', transition: 'all .15s' }}>
+                  <strong style={{ display: 'block', fontSize: '1rem', fontWeight: 800, color: sel ? accent : text }}>{label}</strong>
+                  {extra && <small style={{ fontSize: '.7rem', color: muted }}>{extra}</small>}
+                  {!extra && <small style={{ fontSize: '.7rem', color: muted }}>base</small>}
                 </button>
               )
             })}
           </div>
+          {intent !== 'photography' && (
+            <p style={{ fontSize: '.75rem', color: muted, marginBottom: '32px' }}>
+              Extra hours: ₱{extraRate.toLocaleString()}/hr{intent !== 'photobooth' ? ' (bundle rate)' : ''}
+            </p>
+          )}
+          <button onClick={() => setStep(5)}
+            style={{ width: '100%', padding: '16px', borderRadius: '999px', background: accent, color: '#1a1208', fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: 'pointer', fontFamily: 'inherit', marginTop: '8px' }}>
+            See my recommendation →
+          </button>
+        </Wrap>
+        <MessengerFloat />
+      </>
+    )
+  }
 
-          <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: muted, marginBottom: '10px' }}>By James Ignacio — Freelance</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px' }}>
-            {SERVICES.slice(2).map(o => {
-              const checked = services.includes(o.value)
-              return (
-                <button key={o.value} type="button" onClick={() => setServices(prev => prev.includes(o.value) ? prev.filter(s => s !== o.value) : [...prev, o.value])}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: `1.5px solid ${checked ? accent : border}`, borderRadius: '12px', background: checked ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'all .15s' }}>
-                  <span style={{ width: 20, height: 20, borderRadius: '5px', border: `2px solid ${checked ? accent : muted}`, background: checked ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
-                    {checked && <span style={{ color: '#1a1208', fontSize: '.7rem', fontWeight: 900 }}>✓</span>}
-                  </span>
-                  <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{o.icon}</span>
-                  <span style={{ flex: 1 }}>
-                    <strong style={{ display: 'block', fontSize: '.9rem', fontWeight: 700, color: text }}>{o.value}</strong>
-                    <small style={{ fontSize: '.75rem', color: muted }}>{o.sub}</small>
-                  </span>
-                  <span style={{ fontSize: '.8rem', fontWeight: 700, color: accent, whiteSpace: 'nowrap' }}>
-                    ₱{o.basePrice.toLocaleString()}{o.hasHours ? '/3hrs' : ' flat'}
-                  </span>
-                </button>
-              )
-            })}
+  // ── STEP 5: Recommendation ─────────────────────────────────────────────────
+  if (step === 5 && rec) return (
+    <>
+      <Header showBack backFn={() => setStep(4)} />
+      <Wrap>
+        <DatePill />
+        <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>My recommendation</p>
+        <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: '24px' }}>
+          Here&rsquo;s what I&rsquo;d suggest for you.
+        </h1>
+
+        {/* Package card */}
+        <div style={{ background: card, border: `1.5px solid ${accent}`, borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div>
+              <span style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: accent }}>{rec.tag}</span>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: text, marginTop: '4px' }}>{rec.name}</h2>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontSize: '1.6rem', fontWeight: 900, color: accent, letterSpacing: '-.02em', lineHeight: 1 }}>₱{rec.basePrice.toLocaleString()}</p>
+              <p style={{ fontSize: '.7rem', color: muted }}>base price</p>
+            </div>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {rec.includes.map(item => (
+              <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '.85rem', color: muted }}>
+                <span style={{ color: accent, fontWeight: 700, flexShrink: 0 }}>✓</span>{item}
+              </li>
+            ))}
+          </ul>
+          {rec.extraHrCost > 0 && (
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: `1px solid ${border}`, display: 'flex', justifyContent: 'space-between', fontSize: '.85rem' }}>
+              <span style={{ color: muted }}>Extra hours ({hours - 3}hr × ₱{rec.extraHrRate.toLocaleString()})</span>
+              <span style={{ color: text, fontWeight: 700 }}>+₱{rec.extraHrCost.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Magnets toggle */}
+        <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: magnets ? '16px' : 0 }}>
+            <div>
+              <p style={{ fontSize: '.9rem', fontWeight: 700, color: text, marginBottom: '2px' }}>Add photo magnets?</p>
+              <p style={{ fontSize: '.75rem', color: muted }}>Custom-printed magnets from your photobooth shots</p>
+            </div>
+            <button onClick={() => setMagnets(v => !v)}
+              style={{ width: 44, height: 26, borderRadius: '999px', border: 'none', background: magnets ? accent : border, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 3, left: magnets ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left .2s' }} />
+            </button>
           </div>
 
-          {/* Duration */}
-          {showDuration && (
-            <div style={{ marginBottom: '24px' }}>
-              <p style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: accent, marginBottom: '12px' }}>How long do you need?</p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {DURATIONS.map((d, i) => (
-                  <button key={d.label} type="button" onClick={() => setDurIdx(i)}
-                    style={{ padding: '9px 22px', borderRadius: '999px', border: `1.5px solid ${durIdx === i ? accent : border}`, background: durIdx === i ? 'rgba(196,122,58,.12)' : card, color: durIdx === i ? accent : muted, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
-                    {d.label}
+          {magnets && (
+            <div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {[{ qty: 80, label: '80 pcs', note: 'good for 70-80 pax' }, { qty: 150, label: '150 pcs', note: 'good for 120+ pax' }].map(p => (
+                  <button key={p.qty} onClick={() => setMagnetQty(p.qty)}
+                    style={{ flex: 1, padding: '10px', borderRadius: '10px', border: `1.5px solid ${magnetQty === p.qty ? accent : border}`, background: magnetQty === p.qty ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center' }}>
+                    <strong style={{ display: 'block', fontSize: '.85rem', color: text }}>{p.label}</strong>
+                    <small style={{ fontSize: '.7rem', color: muted }}>{p.note}</small>
                   </button>
                 ))}
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '.72rem', color: muted, marginBottom: '4px' }}>Custom quantity</label>
+                  <input type="number" min={1} value={magnetQty} onChange={e => setMagnetQty(Math.max(1, parseInt(e.target.value) || 1))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <p style={{ fontSize: '.7rem', color: muted, marginBottom: '2px' }}>{magnetQty >= 100 ? '₱10/pc' : '₱12.50/pc'}</p>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 800, color: accent }}>₱{magnetCost(magnetQty).toLocaleString()}</p>
+                </div>
+              </div>
             </div>
           )}
-
-          {/* Price estimate */}
-          {services.length > 0 && (
-            <div style={{ padding: '16px 20px', borderRadius: '12px', background: 'rgba(196,122,58,.07)', border: `1px solid rgba(196,122,58,.2)`, marginBottom: '32px' }}>
-              <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: muted, marginBottom: '4px' }}>Estimated starting price</p>
-              <p style={{ fontSize: '1.6rem', fontWeight: 800, color: accent, letterSpacing: '-.02em' }}>
-                {dur.custom ? 'Custom quote' : `₱${estimate?.toLocaleString()}`}
-              </p>
-              <p style={{ fontSize: '.74rem', color: muted, marginTop: '4px' }}>{services.join(' + ')} · Final rate confirmed after consult</p>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button onClick={() => setStep(1)}
-              style={{ padding: '14px 28px', borderRadius: '999px', border: `1.5px solid ${border}`, background: 'transparent', color: muted, fontWeight: 600, fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit' }}>
-              ← Back
-            </button>
-            <button onClick={() => { setError(''); setStep(3) }} disabled={services.length === 0}
-              style={{ flex: 1, padding: '14px', borderRadius: '999px', background: services.length > 0 ? accent : border, color: services.length > 0 ? '#1a1208' : muted, fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: services.length > 0 ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all .2s' }}>
-              {services.length > 0 ? 'Continue →' : 'Pick at least one service'}
-            </button>
-          </div>
         </div>
-      </main>
+
+        {/* Running total */}
+        <div style={{ background: 'rgba(196,122,58,.07)', border: `1px solid rgba(196,122,58,.2)`, borderRadius: '12px', padding: '16px 20px', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: muted, marginBottom: '2px' }}>Estimated total</p>
+            <p style={{ fontSize: '.72rem', color: muted }}>Final price confirmed after consult</p>
+          </div>
+          <p style={{ fontSize: '2rem', fontWeight: 900, color: accent, letterSpacing: '-.03em', lineHeight: 1 }}>₱{totalEstimate.toLocaleString()}</p>
+        </div>
+
+        <button onClick={() => setStep(6)}
+          style={{ width: '100%', padding: '16px', borderRadius: '999px', background: accent, color: '#1a1208', fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          This looks right — let&rsquo;s book it →
+        </button>
+        <p style={{ textAlign: 'center', fontSize: '.75rem', color: muted, marginTop: '10px' }}>No payment now. ₱500 deposit locks in your date after submitting.</p>
+      </Wrap>
       <MessengerFloat />
     </>
   )
 
-  /* ── Step 4: Success ── */
-  if (step === 4) return (
+  // ── STEP 6: Contact ────────────────────────────────────────────────────────
+  if (step === 6) return (
     <>
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.95)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
-        </div>
-      </header>
+      <Header showBack backFn={() => setStep(5)} />
+      <Wrap>
+        <DatePill />
+        <QLabel q="Almost done" title="How do we reach you?" sub="Just your name and number — I'll handle the rest." />
+
+        <form onSubmit={handleSubmit} noValidate>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+            {[
+              { id: 'b-name',  label: 'Full name',    ph: 'Juan dela Cruz',   val: name,  set: setName,  type: 'text' },
+              { id: 'b-phone', label: 'Phone number', ph: '+63 9xx xxx xxxx', val: phone, set: setPhone, type: 'tel'  },
+            ].map(f => (
+              <div key={f.id}>
+                <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>
+                  {f.label} <span style={{ color: '#e07070' }}>*</span>
+                </label>
+                <input id={f.id} type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} required
+                  style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                  onFocus={e => (e.target.style.borderColor = accent)}
+                  onBlur={e  => (e.target.style.borderColor = border)}
+                />
+              </div>
+            ))}
+          </div>
+
+          <button type="button" onClick={() => setShowExtra(v => !v)}
+            style={{ background: 'none', border: 'none', color: muted, fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: '0 0 20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {showExtra ? '▾' : '▸'} Add event details (optional)
+          </button>
+
+          {showExtra && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+              {[
+                { id: 'b-event', label: 'Event name',  ph: 'e.g. Grad party, company outing', val: eventName, set: setEventName },
+                { id: 'b-loc',   label: 'Location',     ph: 'Where is your event?',             val: location,  set: setLocation  },
+              ].map(f => (
+                <div key={f.id}>
+                  <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>{f.label}</label>
+                  <input id={f.id} type="text" value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                    style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                    onFocus={e => (e.target.style.borderColor = accent)}
+                    onBlur={e  => (e.target.style.borderColor = border)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Booking summary */}
+          <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '12px', padding: '16px 20px', marginBottom: '20px' }}>
+            {[
+              { label: 'Date',     value: selectedDate },
+              { label: 'Package',  value: rec?.name ?? '' },
+              { label: 'Duration', value: `${hours} hours` },
+              { label: 'Magnets',  value: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None' },
+              { label: 'Est. total', value: `₱${totalEstimate.toLocaleString()}` },
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem', padding: '4px 0' }}>
+                <span style={{ color: muted }}>{row.label}</span>
+                <span style={{ color: text, fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {error && <p style={{ fontSize: '.82rem', color: '#f87171', marginBottom: '14px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>{error}</p>}
+
+          <button type="submit" disabled={submitting}
+            style={{ width: '100%', padding: '16px', borderRadius: '999px', background: accent, color: '#1a1208', fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? .6 : 1, fontFamily: 'inherit' }}>
+            {submitting ? 'Sending…' : 'Send Booking Request →'}
+          </button>
+          <p style={{ textAlign: 'center', fontSize: '.75rem', color: muted, marginTop: '10px' }}>50+ events covered · I reply within 24 hours</p>
+        </form>
+      </Wrap>
+      <MessengerFloat />
+    </>
+  )
+
+  // ── STEP 7: Success ────────────────────────────────────────────────────────
+  return (
+    <>
+      <Header />
       <main style={{ minHeight: '100vh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
         <div style={{ maxWidth: 480, width: '100%', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: accent, color: '#1a1208', fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>✓</div>
-          <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2rem)', fontWeight: 800, color: text, letterSpacing: '-.02em', marginBottom: '12px' }}>
-            Request sent, {name.split(' ')[0]}!
+          <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2rem)', fontWeight: 800, color: text, letterSpacing: '-.02em', marginBottom: '10px' }}>
+            Booking request sent, {name.split(' ')[0]}!
           </h1>
-          <p style={{ fontSize: '.9rem', color: muted, lineHeight: 1.75, marginBottom: '8px' }}>
-            I&rsquo;ll review your booking and get back to you within 24 hours.
-          </p>
-          <p style={{ fontSize: '.78rem', color: muted, marginBottom: '32px' }}>
+          <p style={{ fontSize: '.88rem', color: muted, lineHeight: 1.7, marginBottom: '6px' }}>I&rsquo;ll review and get back to you within 24 hours.</p>
+          <p style={{ fontSize: '.78rem', color: muted, marginBottom: '28px' }}>
             Reference: <strong style={{ color: accent, fontFamily: 'monospace' }}>{bookingRef}</strong>
           </p>
 
+          {/* Summary */}
+          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '20px', textAlign: 'left' }}>
+            {[
+              { label: 'Date',    value: selectedDate },
+              { label: 'Package', value: rec?.name ?? '' },
+              { label: 'Total est.', value: `₱${totalEstimate.toLocaleString()}` },
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem', padding: '4px 0' }}>
+                <span style={{ color: muted }}>{row.label}</span>
+                <span style={{ color: text, fontWeight: 700 }}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Deposit CTA */}
-          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
-            <p style={{ fontSize: '.9rem', fontWeight: 700, color: text, marginBottom: '6px' }}>
-              💸 Hold your slot with a ₱{DEPOSIT_AMOUNT.toLocaleString()} deposit
-            </p>
-            <p style={{ fontSize: '.8rem', color: muted, lineHeight: 1.65, marginBottom: '20px' }}>
-              Paying now guarantees your date. Skip this and I&rsquo;ll still review — but the slot isn&rsquo;t locked until deposit is received.
+          <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '.9rem', fontWeight: 700, color: text, marginBottom: '6px' }}>💸 Lock in your date — ₱500 deposit</p>
+            <p style={{ fontSize: '.78rem', color: muted, lineHeight: 1.65, marginBottom: '16px' }}>
+              Paying now guarantees your slot. Skip this and I&rsquo;ll still review — but the date isn&rsquo;t reserved until deposit is received.
             </p>
             <button onClick={handlePayDeposit} disabled={payLoading}
               style={{ width: '100%', padding: '14px', borderRadius: '999px', background: payLoading ? border : accent, color: payLoading ? muted : '#1a1208', fontWeight: 800, fontSize: '.9rem', border: 'none', cursor: payLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}>
@@ -417,112 +637,10 @@ function BookingPage() {
           </div>
 
           <a href="https://m.me/craftifylephotobooth" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'block', padding: '13px', borderRadius: '999px', border: `1.5px solid ${border}`, color: muted, fontSize: '.85rem', fontWeight: 600, textDecoration: 'none', marginBottom: '24px', transition: 'border-color .15s' }}>
-            💬 Or message me directly instead
+            style={{ display: 'block', padding: '13px', borderRadius: '999px', border: `1.5px solid ${border}`, color: muted, fontSize: '.85rem', fontWeight: 600, textDecoration: 'none', marginBottom: '24px' }}>
+            💬 Or message me directly
           </a>
-
           <Link href="/" style={{ fontSize: '.78rem', color: muted }}>← Back to site</Link>
-        </div>
-      </main>
-      <MessengerFloat />
-    </>
-  )
-
-  /* ── Step 3: Contact ── */
-  return (
-    <>
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.95)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontSize: '.82rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
-          <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back</Link>
-        </div>
-        <ProgressBar step={3} />
-      </header>
-
-      <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>
-
-          {/* Summary pill */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '28px' }}>
-            {[`📅 ${selectedDate}`, `${services.join(' + ')}`, estimate ? `₱${estimate.toLocaleString()}` : 'Custom quote'].map(pill => (
-              <span key={pill} style={{ padding: '6px 14px', borderRadius: '999px', background: 'rgba(196,122,58,.1)', border: `1px solid rgba(196,122,58,.25)`, fontSize: '.75rem', fontWeight: 600, color: accent }}>{pill}</span>
-            ))}
-          </div>
-
-          <p style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>Step 3 of 3</p>
-          <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: '8px' }}>Almost done.</h1>
-          <p style={{ fontSize: '.88rem', color: muted, marginBottom: '32px' }}>Just your name and number — I&rsquo;ll handle the rest.</p>
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
-              {[
-                { id: 'b-name',  label: 'Full name',    ph: 'Juan dela Cruz',   val: name,  set: setName,  type: 'text', req: true },
-                { id: 'b-phone', label: 'Phone number', ph: '+63 9xx xxx xxxx', val: phone, set: setPhone, type: 'tel',  req: true },
-              ].map(f => (
-                <div key={f.id}>
-                  <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>
-                    {f.label} <span style={{ color: '#e07070' }}>*</span>
-                  </label>
-                  <input id={f.id} type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph} required={f.req}
-                    style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
-                    onFocus={e => (e.target.style.borderColor = accent)}
-                    onBlur={e  => (e.target.style.borderColor = border)}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Optional extra fields */}
-            <button type="button" onClick={() => setShowExtra(v => !v)}
-              style={{ background: 'none', border: 'none', color: muted, fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', padding: '0 0 20px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {showExtra ? '▾' : '▸'} Add event details (optional)
-            </button>
-
-            {showExtra && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
-                {[
-                  { id: 'b-event', label: 'Event or project name', ph: 'e.g. Grad party, brand shoot', val: eventName, set: setEventName, type: 'text' },
-                  { id: 'b-loc',   label: 'Location',              ph: 'Where will this take place?', val: location,  set: setLocation,  type: 'text' },
-                ].map(f => (
-                  <div key={f.id}>
-                    <label htmlFor={f.id} style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>{f.label}</label>
-                    <input id={f.id} type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
-                      style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
-                      onFocus={e => (e.target.style.borderColor = accent)}
-                      onBlur={e  => (e.target.style.borderColor = border)}
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label htmlFor="b-details" style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: muted, marginBottom: '6px' }}>Additional notes</label>
-                  <textarea id="b-details" rows={3} value={details} onChange={e => setDetails(e.target.value)} placeholder="Guest count, specific requests, budget range…"
-                    style={{ width: '100%', padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${border}`, background: card, color: text, fontSize: '.9rem', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
-                    onFocus={e => (e.target.style.borderColor = accent)}
-                    onBlur={e  => (e.target.style.borderColor = border)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <p style={{ fontSize: '.82rem', color: '#f87171', marginBottom: '14px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>{error}</p>
-            )}
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              <button type="button" onClick={() => setStep(2)}
-                style={{ padding: '14px 28px', borderRadius: '999px', border: `1.5px solid ${border}`, background: 'transparent', color: muted, fontWeight: 600, fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit' }}>
-                ← Back
-              </button>
-              <button type="submit" disabled={submitting}
-                style={{ flex: 1, padding: '14px', borderRadius: '999px', background: accent, color: '#1a1208', fontWeight: 800, fontSize: '.95rem', border: 'none', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? .6 : 1, fontFamily: 'inherit', transition: 'opacity .2s' }}>
-                {submitting ? 'Sending…' : 'Send Booking Request →'}
-              </button>
-            </div>
-
-            <p style={{ fontSize: '.75rem', color: muted, textAlign: 'center', lineHeight: 1.6 }}>
-              50+ events covered · I reply within 24 hours · No payment required now
-            </p>
-          </form>
         </div>
       </main>
       <MessengerFloat />

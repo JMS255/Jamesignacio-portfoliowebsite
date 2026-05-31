@@ -36,7 +36,7 @@ export default function FreelanceServices() {
                 <h3 className="service-row__title">{s.title}</h3>
                 <p className="service-row__desc">{s.desc}</p>
               </div>
-              <Link href={`/booking?service=${encodeURIComponent(s.service)}`} className="service-row__cta">
+              <Link href={`/inquiry?service=${encodeURIComponent(s.service)}`} className="service-row__cta">
                 Inquire →
               </Link>
             </div>
