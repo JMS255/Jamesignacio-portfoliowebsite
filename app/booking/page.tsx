@@ -164,7 +164,14 @@ function BookingPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]         = useState('')
   const [bookingRef, setBookingRef] = useState('')
-  const [payLoading, setPayLoading] = useState(false)
+  const [payLoading, setPayLoading]   = useState(false)
+  const [promoInput, setPromoInput]   = useState('')
+  const [referralInput, setRefInput]  = useState('')
+  const [appliedPromo, setPromo]      = useState('')
+  const [appliedReferral, setReferral]= useState('')
+  const [discount, setDiscount]       = useState<{ promoDiscount: number; referralDiscount: number; creditDiscount: number; final: number } | null>(null)
+  const [codeError, setCodeError]     = useState('')
+  const [codeLoading, setCodeLoading] = useState(false)
 
   // calendar state
   const [viewYear,  setViewYear]  = useState(today.getFullYear())
@@ -243,17 +250,54 @@ function BookingPage() {
     setSubmitting(false)
   }
 
+  async function applyCode(type: 'promo' | 'referral') {
+    const code = type === 'promo' ? promoInput.trim() : referralInput.trim()
+    if (!code || !phone) { setCodeError('Enter your phone number in Step 6 first.'); return }
+    setCodeLoading(true); setCodeError('')
+    try {
+      const res = await fetch('/api/validate-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          basePrice:    totalEstimate,
+          clientPhone:  phone,
+          promoCode:    type === 'promo'    ? code : appliedPromo    || undefined,
+          referralCode: type === 'referral' ? code : appliedReferral || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (data.breakdown.errors.length > 0) {
+        setCodeError(data.breakdown.errors[0])
+      } else {
+        if (type === 'promo')    setPromo(code.toUpperCase())
+        if (type === 'referral') setReferral(code.toUpperCase())
+        setDiscount(data.breakdown)
+        setCodeError('')
+      }
+    } catch { setCodeError('Could not validate code. Try again.') }
+    setCodeLoading(false)
+  }
+
   async function handlePayDeposit() {
     setPayLoading(true)
     try {
-      const res = await fetch('/api/xendit/create', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingRef, serviceLabel: rec?.name, depositAmount: DEPOSIT_AMOUNT, name, phone }),
+        body: JSON.stringify({
+          bookingRef,
+          serviceLabel: rec?.name,
+          basePrice:    totalEstimate,
+          promoCode:    appliedPromo    || undefined,
+          referralCode: appliedReferral || undefined,
+          clientPhone:  phone,
+          name,
+          phone,
+        }),
       })
       const data = await res.json()
       if (data.invoiceUrl) window.location.href = data.invoiceUrl
-      else alert('Could not open payment. Please message me on Messenger.')
+      else { alert(data.error || 'Could not open payment. Please message me on Messenger.') }
     } catch { alert('Network error. Please message me on Messenger.') }
     setPayLoading(false)
   }
@@ -530,13 +574,51 @@ function BookingPage() {
           )}
         </div>
 
+        {/* Promo + Referral codes */}
+        <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+          <p style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: '14px' }}>Have a code?</p>
+          {[
+            { type: 'promo' as const, label: 'Promo code', input: promoInput, setInput: setPromoInput, applied: appliedPromo },
+            { type: 'referral' as const, label: 'Referral code', input: referralInput, setInput: setRefInput, applied: appliedReferral },
+          ].map(f => (
+            <div key={f.type} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+              <input type="text" value={f.input} onChange={e => f.setInput(e.target.value.toUpperCase())}
+                placeholder={f.applied ? `✓ ${f.applied} applied` : `Enter ${f.label.toLowerCase()}`}
+                disabled={!!f.applied}
+                style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${f.applied ? accent : border}`, background: f.applied ? 'rgba(196,122,58,.08)' : card, color: f.applied ? accent : text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none' }}
+              />
+              {!f.applied && (
+                <button onClick={() => applyCode(f.type)} disabled={!f.input.trim() || codeLoading}
+                  style={{ padding: '10px 18px', borderRadius: '8px', background: f.input.trim() ? accent : border, color: f.input.trim() ? '#1a1208' : muted, fontWeight: 700, fontSize: '.82rem', border: 'none', cursor: f.input.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  {codeLoading ? '…' : 'Apply'}
+                </button>
+              )}
+            </div>
+          ))}
+          {codeError && <p style={{ fontSize: '.78rem', color: '#f87171', marginTop: '4px' }}>{codeError}</p>}
+          {discount && (
+            <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(196,122,58,.07)', borderRadius: '8px', fontSize: '.78rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {discount.promoDiscount > 0    && <span style={{ color: accent }}>Promo: −₱{discount.promoDiscount.toLocaleString()}</span>}
+              {discount.referralDiscount > 0 && <span style={{ color: accent }}>Referral: −₱{discount.referralDiscount.toLocaleString()}</span>}
+              {discount.creditDiscount > 0   && <span style={{ color: accent }}>Store credit: −₱{discount.creditDiscount.toLocaleString()}</span>}
+            </div>
+          )}
+        </div>
+
         {/* Running total */}
         <div style={{ background: 'rgba(196,122,58,.07)', border: `1px solid rgba(196,122,58,.2)`, borderRadius: '12px', padding: '16px 20px', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <p style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: muted, marginBottom: '2px' }}>Estimated total</p>
             <p style={{ fontSize: '.72rem', color: muted }}>Final price confirmed after consult</p>
           </div>
-          <p style={{ fontSize: '2rem', fontWeight: 900, color: accent, letterSpacing: '-.03em', lineHeight: 1 }}>₱{totalEstimate.toLocaleString()}</p>
+          <div style={{ textAlign: 'right' }}>
+            {discount && discount.promoDiscount + discount.referralDiscount + discount.creditDiscount > 0 && (
+              <p style={{ fontSize: '.8rem', color: muted, textDecoration: 'line-through' }}>₱{totalEstimate.toLocaleString()}</p>
+            )}
+            <p style={{ fontSize: '2rem', fontWeight: 900, color: accent, letterSpacing: '-.03em', lineHeight: 1 }}>
+              ₱{(discount?.final ?? totalEstimate).toLocaleString()}
+            </p>
+          </div>
         </div>
 
         <button onClick={() => setStep(6)}
