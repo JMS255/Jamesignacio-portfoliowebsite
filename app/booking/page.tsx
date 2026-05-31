@@ -574,37 +574,6 @@ function BookingPage() {
           )}
         </div>
 
-        {/* Promo + Referral codes */}
-        <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
-          <p style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: '14px' }}>Have a code?</p>
-          {[
-            { type: 'promo' as const, label: 'Promo code', input: promoInput, setInput: setPromoInput, applied: appliedPromo },
-            { type: 'referral' as const, label: 'Referral code', input: referralInput, setInput: setRefInput, applied: appliedReferral },
-          ].map(f => (
-            <div key={f.type} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-              <input type="text" value={f.input} onChange={e => f.setInput(e.target.value.toUpperCase())}
-                placeholder={f.applied ? `✓ ${f.applied} applied` : `Enter ${f.label.toLowerCase()}`}
-                disabled={!!f.applied}
-                style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${f.applied ? accent : border}`, background: f.applied ? 'rgba(196,122,58,.08)' : card, color: f.applied ? accent : text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none' }}
-              />
-              {!f.applied && (
-                <button onClick={() => applyCode(f.type)} disabled={!f.input.trim() || codeLoading}
-                  style={{ padding: '10px 18px', borderRadius: '8px', background: f.input.trim() ? accent : border, color: f.input.trim() ? '#1a1208' : muted, fontWeight: 700, fontSize: '.82rem', border: 'none', cursor: f.input.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                  {codeLoading ? '…' : 'Apply'}
-                </button>
-              )}
-            </div>
-          ))}
-          {codeError && <p style={{ fontSize: '.78rem', color: '#f87171', marginTop: '4px' }}>{codeError}</p>}
-          {discount && (
-            <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(196,122,58,.07)', borderRadius: '8px', fontSize: '.78rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {discount.promoDiscount > 0    && <span style={{ color: accent }}>Promo: −₱{discount.promoDiscount.toLocaleString()}</span>}
-              {discount.referralDiscount > 0 && <span style={{ color: accent }}>Referral: −₱{discount.referralDiscount.toLocaleString()}</span>}
-              {discount.creditDiscount > 0   && <span style={{ color: accent }}>Store credit: −₱{discount.creditDiscount.toLocaleString()}</span>}
-            </div>
-          )}
-        </div>
-
         {/* Running total */}
         <div style={{ background: 'rgba(196,122,58,.07)', border: `1px solid rgba(196,122,58,.2)`, borderRadius: '12px', padding: '16px 20px', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -703,6 +672,37 @@ function BookingPage() {
                 />
               </div>
             ))}
+          </div>
+
+          {/* Promo + Referral codes */}
+          <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '20px' }}>
+            <p style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: '14px' }}>Have a code?</p>
+            {[
+              { type: 'promo' as const, label: 'Promo code', input: promoInput, setInput: setPromoInput, applied: appliedPromo },
+              { type: 'referral' as const, label: 'Referral code', input: referralInput, setInput: setRefInput, applied: appliedReferral },
+            ].map(f => (
+              <div key={f.type} style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                <input type="text" value={f.input} onChange={e => f.setInput(e.target.value.toUpperCase())}
+                  placeholder={f.applied ? `✓ ${f.applied} applied` : `Enter ${f.label.toLowerCase()}`}
+                  disabled={!!f.applied}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: `1.5px solid ${f.applied ? accent : border}`, background: f.applied ? 'rgba(196,122,58,.08)' : card, color: f.applied ? accent : text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none' }}
+                />
+                {!f.applied && (
+                  <button type="button" onClick={() => applyCode(f.type)} disabled={!f.input.trim() || codeLoading}
+                    style={{ padding: '10px 18px', borderRadius: '8px', background: f.input.trim() ? accent : border, color: f.input.trim() ? '#1a1208' : muted, fontWeight: 700, fontSize: '.82rem', border: 'none', cursor: f.input.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    {codeLoading ? '…' : 'Apply'}
+                  </button>
+                )}
+              </div>
+            ))}
+            {codeError && <p style={{ fontSize: '.78rem', color: '#f87171', marginTop: '4px' }}>{codeError}</p>}
+            {discount && (
+              <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(196,122,58,.07)', borderRadius: '8px', fontSize: '.78rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {discount.promoDiscount > 0    && <span style={{ color: accent }}>Promo: −₱{discount.promoDiscount.toLocaleString()}</span>}
+                {discount.referralDiscount > 0 && <span style={{ color: accent }}>Referral: −₱{discount.referralDiscount.toLocaleString()}</span>}
+                {discount.creditDiscount > 0   && <span style={{ color: accent }}>Store credit: −₱{discount.creditDiscount.toLocaleString()}</span>}
+              </div>
+            )}
           </div>
 
           {/* Booking summary */}
