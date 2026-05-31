@@ -696,11 +696,17 @@ function BookingPage() {
               </div>
             ))}
             {codeError && <p style={{ fontSize: '.78rem', color: '#f87171', marginTop: '4px' }}>{codeError}</p>}
-            {discount && (
-              <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(196,122,58,.07)', borderRadius: '8px', fontSize: '.78rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {discount.promoDiscount > 0    && <span style={{ color: accent }}>Promo: −₱{discount.promoDiscount.toLocaleString()}</span>}
-                {discount.referralDiscount > 0 && <span style={{ color: accent }}>Referral: −₱{discount.referralDiscount.toLocaleString()}</span>}
-                {discount.creditDiscount > 0   && <span style={{ color: accent }}>Store credit: −₱{discount.creditDiscount.toLocaleString()}</span>}
+            {discount && (discount.promoDiscount + discount.referralDiscount + discount.creditDiscount) > 0 && (
+              <div style={{ marginTop: '12px', padding: '16px 18px', background: 'rgba(196,122,58,.1)', border: `1.5px solid ${accent}`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  {discount.promoDiscount > 0    && <p style={{ fontSize: '.82rem', color: accent, fontWeight: 600 }}>🎟 Promo applied: −₱{discount.promoDiscount.toLocaleString()}</p>}
+                  {discount.referralDiscount > 0 && <p style={{ fontSize: '.82rem', color: accent, fontWeight: 600 }}>🤝 Referral: −₱{discount.referralDiscount.toLocaleString()}</p>}
+                  {discount.creditDiscount > 0   && <p style={{ fontSize: '.82rem', color: accent, fontWeight: 600 }}>💳 Store credit: −₱{discount.creditDiscount.toLocaleString()}</p>}
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <p style={{ fontSize: '.72rem', color: muted, textDecoration: 'line-through' }}>₱{totalEstimate.toLocaleString()}</p>
+                  <p style={{ fontSize: '1.4rem', fontWeight: 900, color: accent, letterSpacing: '-.02em', lineHeight: 1 }}>₱{discount.final.toLocaleString()}</p>
+                </div>
               </div>
             )}
           </div>
@@ -715,13 +721,24 @@ function BookingPage() {
               { label: 'Package',    value: rec?.name ?? '' },
               { label: 'Duration',   value: `${hours} hours` },
               { label: 'Magnets',    value: magnets ? `${magnetQty} pcs — ₱${magCost.toLocaleString()}` : 'None' },
-              { label: 'Est. total', value: `₱${totalEstimate.toLocaleString()}` },
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem', padding: '4px 0' }}>
                 <span style={{ color: muted }}>{row.label}</span>
                 <span style={{ color: text, fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{row.value}</span>
               </div>
             ))}
+            {/* Est. total row — shows discounted price if code applied */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '.82rem', padding: '8px 0 0', borderTop: `1px solid ${border}`, marginTop: '6px' }}>
+              <span style={{ color: muted, fontWeight: 700 }}>Est. total</span>
+              <div style={{ textAlign: 'right' }}>
+                {discount && discount.final < totalEstimate && (
+                  <p style={{ fontSize: '.75rem', color: muted, textDecoration: 'line-through' }}>₱{totalEstimate.toLocaleString()}</p>
+                )}
+                <p style={{ fontSize: '1.1rem', fontWeight: 900, color: accent, letterSpacing: '-.02em' }}>
+                  ₱{(discount?.final ?? totalEstimate).toLocaleString()}
+                </p>
+              </div>
+            </div>
           </div>
 
           {error && <p style={{ fontSize: '.82rem', color: '#f87171', marginBottom: '14px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>{error}</p>}
