@@ -12,10 +12,11 @@ function getDb() {
 }
 
 export interface CheckoutInput {
-  basePrice:     number
-  promoCode?:    string
+  basePrice:    number
+  promoCode?:   string
   referralCode?: string
-  clientPhone:   string
+  clientPhone:  string
+  packageName?: string   // e.g. "Photobooth + Photography Bundle"
 }
 
 export interface CheckoutBreakdown {
@@ -36,6 +37,7 @@ interface PromoRow {
   max_uses: number | null
   used_count: number
   active: boolean
+  applies_to: string[] | null
 }
 
 interface ReferralRow {
@@ -60,7 +62,7 @@ export async function calculateCheckout(input: CheckoutInput): Promise<CheckoutB
   if (input.promoCode) {
     const { data: promo } = await db
       .from('promo_codes')
-      .select('type, amount, expires_at, max_uses, used_count, active')
+      .select('type, amount, expires_at, max_uses, used_count, active, applies_to')
       .eq('code', input.promoCode.toUpperCase())
       .single<PromoRow>()
 
@@ -72,6 +74,8 @@ export async function calculateCheckout(input: CheckoutInput): Promise<CheckoutB
       errors.push('Promo code has expired.')
     } else if (promo.max_uses !== null && promo.used_count >= promo.max_uses) {
       errors.push('Promo code has reached its usage limit.')
+    } else if (promo.applies_to && promo.applies_to.length > 0 && input.packageName && !promo.applies_to.includes(input.packageName)) {
+      errors.push(`This code is only valid for: ${promo.applies_to.join(', ')}.`)
     } else {
       if (promo.type === 'flat') {
         promoDiscount = Math.min(promo.amount, price)

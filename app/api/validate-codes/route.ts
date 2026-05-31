@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   if (!body) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
 
-  const { promoCode, referralCode, clientPhone, basePrice } = body
+  const { promoCode, referralCode, clientPhone, basePrice, packageName } = body
   if (!clientPhone || !basePrice) {
     return NextResponse.json({ error: 'Missing clientPhone or basePrice' }, { status: 400 })
   }
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     promoCode:    promoCode    || undefined,
     referralCode: referralCode || undefined,
     clientPhone,
+    packageName:  packageName  || undefined,
   })
 
   return NextResponse.json({ breakdown })

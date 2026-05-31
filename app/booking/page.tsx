@@ -261,6 +261,7 @@ function BookingPage() {
         body: JSON.stringify({
           basePrice:    totalEstimate,
           clientPhone:  phone,
+          packageName:  rec?.name,
           promoCode:    type === 'promo'    ? code : appliedPromo    || undefined,
           referralCode: type === 'referral' ? code : appliedReferral || undefined,
         }),
@@ -287,6 +288,7 @@ function BookingPage() {
         body: JSON.stringify({
           bookingRef,
           serviceLabel: rec?.name,
+          packageName:  rec?.name,
           basePrice:    totalEstimate,
           promoCode:    appliedPromo    || undefined,
           referralCode: appliedReferral || undefined,
