@@ -7,8 +7,8 @@ const links = [
   { href: '#work',     label: 'Work' },
   { href: '#pricing',  label: 'Pricing' },
   { href: '/gallery',  label: 'Gallery' },
-  { href: '#blog',     label: 'Writing' },
-  { href: '#about',    label: 'About' },
+  { href: '/blog',     label: 'Writing' },
+  { href: '/about',    label: 'About' },
 ]
 
 export default function Nav() {
