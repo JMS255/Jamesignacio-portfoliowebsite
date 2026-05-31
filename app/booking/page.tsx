@@ -801,7 +801,7 @@ function BookingPage() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               {[
-                { label: 'GCash Number',  value: '0905-243-5196' },
+                { label: 'GCash Number',  value: '0993-632-4512' },
                 { label: 'Account Name', value: 'James Ignacio' },
                 { label: 'Amount',       value: `₱${DEPOSIT_AMOUNT.toLocaleString()}` },
                 { label: 'Payment Note', value: `${bookingRef}` },
