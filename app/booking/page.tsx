@@ -13,7 +13,7 @@ const DEPOSIT_AMOUNT   = 500
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 const SERVICES = [
-  { value: 'Photobooth Rental',  icon: '📷', sub: 'Parties, weddings, corporate events', basePrice: 3500, hasHours: true  },
+  { value: 'Photobooth Service', icon: '📷', sub: 'Parties, weddings, corporate events', basePrice: 3500, hasHours: true  },
   { value: 'Event Photography',  icon: '🎉', sub: 'Full coverage of your special event',  basePrice: 4500, hasHours: true  },
   { value: 'Content Creation',   icon: '🎬', sub: 'Photos & videos for your brand',       basePrice: 3000, hasHours: false },
   { value: 'Brand Consultation', icon: '💡', sub: 'Strategy, identity & positioning',     basePrice: 1000, hasHours: false },
@@ -293,8 +293,32 @@ function BookingPage() {
           <p style={{ fontSize: '.88rem', color: muted, marginBottom: '28px' }}>Pick one or more services. You can select multiple.</p>
 
           {/* Service cards */}
+          <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: accent, marginBottom: '10px' }}>Craftifyle — Zamboanga City</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {SERVICES.slice(0, 2).map(o => {
+              const checked = services.includes(o.value)
+              return (
+                <button key={o.value} type="button" onClick={() => setServices(prev => prev.includes(o.value) ? prev.filter(s => s !== o.value) : [...prev, o.value])}
+                  style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', border: `1.5px solid ${checked ? accent : border}`, borderRadius: '12px', background: checked ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'all .15s' }}>
+                  <span style={{ width: 20, height: 20, borderRadius: '5px', border: `2px solid ${checked ? accent : muted}`, background: checked ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
+                    {checked && <span style={{ color: '#1a1208', fontSize: '.7rem', fontWeight: 900 }}>✓</span>}
+                  </span>
+                  <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{o.icon}</span>
+                  <span style={{ flex: 1 }}>
+                    <strong style={{ display: 'block', fontSize: '.9rem', fontWeight: 700, color: text }}>{o.value}</strong>
+                    <small style={{ fontSize: '.75rem', color: muted }}>{o.sub}</small>
+                  </span>
+                  <span style={{ fontSize: '.8rem', fontWeight: 700, color: accent, whiteSpace: 'nowrap' }}>
+                    ₱{o.basePrice.toLocaleString()}{o.hasHours ? '/3hrs' : ' flat'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: muted, marginBottom: '10px' }}>By James Ignacio — Freelance</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px' }}>
-            {SERVICES.map(o => {
+            {SERVICES.slice(2).map(o => {
               const checked = services.includes(o.value)
               return (
                 <button key={o.value} type="button" onClick={() => setServices(prev => prev.includes(o.value) ? prev.filter(s => s !== o.value) : [...prev, o.value])}
