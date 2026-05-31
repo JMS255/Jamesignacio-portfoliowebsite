@@ -776,13 +776,21 @@ function BookingPage() {
             {[
               { label: 'Date',    value: selectedDate },
               { label: 'Package', value: rec?.name ?? '' },
-              { label: 'Total est.', value: `₱${totalEstimate.toLocaleString()}` },
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem', padding: '4px 0' }}>
                 <span style={{ color: muted }}>{row.label}</span>
                 <span style={{ color: text, fontWeight: 700 }}>{row.value}</span>
               </div>
             ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0 0', borderTop: `1px solid ${border}`, marginTop: '6px' }}>
+              <span style={{ fontSize: '.85rem', color: muted }}>Total est.</span>
+              <div style={{ textAlign: 'right' }}>
+                {discount && discount.final < totalEstimate && (
+                  <p style={{ fontSize: '.75rem', color: muted, textDecoration: 'line-through' }}>₱{totalEstimate.toLocaleString()}</p>
+                )}
+                <p style={{ fontSize: '1.2rem', fontWeight: 900, color: accent }}>₱{(discount?.final ?? totalEstimate).toLocaleString()}</p>
+              </div>
+            </div>
           </div>
 
           {/* Deposit CTA */}
