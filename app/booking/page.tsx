@@ -106,6 +106,7 @@ function BookingPage() {
   const [selectedDate, setDate] = useState(urlDate)
   const [intent, setIntent]     = useState<Intent | null>(null)
   const [paxTier, setPaxTier]   = useState<number | null>(null)
+  const [customPax, setCustomPax] = useState('')
   const [hours, setHours]       = useState(3)
   const [magnets, setMagnets]   = useState(false)
   const [magnetQty, setMagnetQty] = useState(80)
@@ -357,28 +358,60 @@ function BookingPage() {
   }
 
   // ── STEP 3: PAX (photography / both only) ──────────────────────────────────
-  if (step === 3) return (
-    <>
-      <Header showBack backFn={() => setStep(2)} />
-      <Wrap>
-        <DatePill />
-        <QLabel q="Question 3" title="How many guests are you expecting?" sub="This helps me recommend the right photography package." />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
-          {PHOTOGRAPHY_TIERS.map((tier, i) => {
-            const sel = paxTier === i
-            return (
-              <button key={tier.label} onClick={() => { setPaxTier(i); setStep(4) }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderRadius: '14px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}>
-                <strong style={{ fontSize: '1rem', fontWeight: 700, color: text }}>{tier.label}</strong>
-                <span style={{ fontSize: '.85rem', fontWeight: 700, color: accent }}>₱{tier.price.toLocaleString()}</span>
+  if (step === 3) {
+    function handleCustomPax(val: string) {
+      setCustomPax(val)
+      const n = parseInt(val)
+      if (!isNaN(n) && n > 0) {
+        const tier = n >= 80 ? 2 : n >= 50 ? 1 : 0
+        setPaxTier(tier)
+      }
+    }
+    return (
+      <>
+        <Header showBack backFn={() => setStep(2)} />
+        <Wrap>
+          <DatePill />
+          <QLabel q="Question 3" title="How many guests are you expecting?" sub="This helps me recommend the right package for your event." />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {PHOTOGRAPHY_TIERS.map((tier, i) => {
+              const sel = paxTier === i
+              return (
+                <button key={tier.label} onClick={() => { setPaxTier(i); setCustomPax(''); setStep(4) }}
+                  style={{ padding: '18px 20px', borderRadius: '14px', border: `1.5px solid ${sel ? accent : border}`, background: sel ? 'rgba(196,122,58,.1)' : card, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', transition: 'all .15s' }}>
+                  <strong style={{ fontSize: '1rem', fontWeight: 700, color: text }}>{tier.label}</strong>
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ marginBottom: '28px' }}>
+            <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: '8px' }}>
+              Or type your exact headcount
+            </label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input type="number" min={1} value={customPax} onChange={e => handleCustomPax(e.target.value)}
+                placeholder="e.g. 65"
+                style={{ flex: 1, padding: '13px 16px', borderRadius: '10px', border: `1.5px solid ${customPax ? accent : border}`, background: card, color: text, fontSize: '1rem', fontFamily: 'inherit', outline: 'none', transition: 'border-color .15s' }}
+                onFocus={e => (e.target.style.borderColor = accent)}
+                onBlur={e  => (e.target.style.borderColor = customPax ? accent : border)}
+              />
+              <button onClick={() => { if (paxTier !== null) setStep(4) }} disabled={paxTier === null}
+                style={{ padding: '13px 24px', borderRadius: '10px', background: paxTier !== null ? accent : border, color: paxTier !== null ? '#1a1208' : muted, fontWeight: 700, fontSize: '.9rem', border: 'none', cursor: paxTier !== null ? 'pointer' : 'not-allowed', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all .2s' }}>
+                Continue →
               </button>
-            )
-          })}
-        </div>
-      </Wrap>
-      <MessengerFloat />
-    </>
-  )
+            </div>
+            {customPax && paxTier !== null && (
+              <p style={{ fontSize: '.75rem', color: accent, marginTop: '6px' }}>
+                {parseInt(customPax)} guests → {PHOTOGRAPHY_TIERS[paxTier].label} bracket selected
+              </p>
+            )}
+          </div>
+        </Wrap>
+        <MessengerFloat />
+      </>
+    )
+  }
 
   // ── STEP 4: Hours ──────────────────────────────────────────────────────────
   if (step === 4) {
