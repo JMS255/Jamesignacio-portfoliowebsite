@@ -793,16 +793,28 @@ function BookingPage() {
             </div>
           </div>
 
-          {/* Deposit CTA */}
-          <div style={{ background: bg2, border: `1px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
+          {/* Deposit CTA — manual GCash (switch to Xendit when live keys ready) */}
+          <div style={{ background: bg2, border: `1.5px solid ${accent}`, borderRadius: '14px', padding: '24px', marginBottom: '16px' }}>
             <p style={{ fontSize: '.9rem', fontWeight: 700, color: text, marginBottom: '6px' }}>💸 Lock in your date — ₱500 deposit</p>
-            <p style={{ fontSize: '.78rem', color: muted, lineHeight: 1.65, marginBottom: '16px' }}>
-              Paying now guarantees your slot. Skip this and I&rsquo;ll still review — but the date isn&rsquo;t reserved until deposit is received.
+            <p style={{ fontSize: '.78rem', color: muted, lineHeight: 1.65, marginBottom: '20px' }}>
+              Send ₱500 via GCash to secure your slot. Your date isn&rsquo;t reserved until deposit is received.
             </p>
-            <button onClick={handlePayDeposit} disabled={payLoading}
-              style={{ width: '100%', padding: '14px', borderRadius: '999px', background: payLoading ? border : accent, color: payLoading ? muted : '#1a1208', fontWeight: 800, fontSize: '.9rem', border: 'none', cursor: payLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}>
-              {payLoading ? 'Opening payment…' : `Pay ₱${DEPOSIT_AMOUNT.toLocaleString()} via GCash →`}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+              {[
+                { label: 'GCash Number',  value: '0905-243-5196' },
+                { label: 'Account Name', value: 'James Ignacio' },
+                { label: 'Amount',       value: `₱${DEPOSIT_AMOUNT.toLocaleString()}` },
+                { label: 'Payment Note', value: `${bookingRef}` },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem' }}>
+                  <span style={{ color: muted }}>{label}</span>
+                  <span style={{ fontWeight: 700, color: label === 'Payment Note' ? accent : text, fontFamily: label === 'Payment Note' ? 'monospace' : 'inherit' }}>{value}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: '10px 14px', background: 'rgba(196,122,58,.08)', border: `1px solid rgba(196,122,58,.2)`, borderRadius: '8px', fontSize: '.75rem', color: muted, lineHeight: 1.65 }}>
+              ⚠️ After paying, send your GCash screenshot to Messenger with reference <strong style={{ color: accent, fontFamily: 'monospace' }}>{bookingRef}</strong>
+            </div>
           </div>
 
           <a href="https://m.me/craftifylephotobooth" target="_blank" rel="noopener noreferrer"
