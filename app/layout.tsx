@@ -55,7 +55,8 @@ const jsonLd = {
   name: 'Craftifyle',
   url: 'https://craftifyle.business/',
   image: 'https://craftifyle.business/images/og-image.jpg',
-  description: 'Photobooth rentals, event photography, and content creation for Zamboanga City\'s biggest moments. 50+ events covered.',
+  description: 'Photobooth service, event photography, and content creation for Zamboanga City\'s biggest moments. 50+ events covered.',
+  telephone: '+639936324512',
   email: 'jamesignacio255@gmail.com',
   address: {
     '@type': 'PostalAddress',
@@ -87,7 +88,7 @@ const jsonLd = {
     '@type': 'OfferCatalog',
     name: 'Event Services',
     itemListElement: [
-      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Photobooth Rental' } },
+      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Photobooth Service' } },
       { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Event Photography' } },
       { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Content Creation' } },
     ],
