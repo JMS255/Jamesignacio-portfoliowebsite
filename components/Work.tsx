@@ -44,7 +44,7 @@ const webCards = [
   },
   {
     url: 'https://laagan-adventure.vercel.app',
-    img: '/images/web/laagan-website.png',
+    img: '/images/laagan-website.png',
     alt: 'Laagan Adventure tour booking website',
     tag: 'Web Design',
     title: 'Laagan Adventure — Tour Booking Website',
