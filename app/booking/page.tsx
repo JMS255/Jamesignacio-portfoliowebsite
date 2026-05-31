@@ -93,6 +93,49 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
   )
 }
 
+function BookingHeader({ step, totalSteps, showBack = false, backFn }: { step: number; totalSteps: number; showBack?: boolean; backFn?: () => void }) {
+  return (
+    <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.97)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
+      <div style={{ maxWidth: 620, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link href="/" style={{ fontSize: '.78rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
+        {showBack
+          ? <button onClick={backFn} style={{ background: 'none', border: 'none', color: muted, fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
+          : <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back to site</Link>
+        }
+      </div>
+      <ProgressBar step={step - 1} total={totalSteps} />
+    </header>
+  )
+}
+
+function Wrap({ children }: { children: React.ReactNode }) {
+  return (
+    <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>{children}</div>
+    </main>
+  )
+}
+
+function QLabel({ q, title, sub }: { q: string; title: string; sub?: string }) {
+  return (
+    <div style={{ marginBottom: '32px' }}>
+      <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>{q}</p>
+      <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: sub ? '8px' : 0 }}>{title}</h1>
+      {sub && <p style={{ fontSize: '.88rem', color: muted }}>{sub}</p>}
+    </div>
+  )
+}
+
+function DatePill({ selectedDate }: { selectedDate: string }) {
+  if (!selectedDate) return null
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '999px', background: 'rgba(196,122,58,.1)', border: `1px solid rgba(196,122,58,.25)`, marginBottom: '24px' }}>
+      <span style={{ fontSize: '.85rem' }}>📅</span>
+      <span style={{ fontSize: '.82rem', fontWeight: 700, color: accent }}>{selectedDate}</span>
+    </div>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 function BookingPage() {
   const searchParams = useSearchParams()
@@ -215,57 +258,10 @@ function BookingPage() {
     setPayLoading(false)
   }
 
-  // ── Shared header ──────────────────────────────────────────────────────────
-  function Header({ showBack = false, backFn }: { showBack?: boolean; backFn?: () => void }) {
-    return (
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `rgba(23,18,14,.97)`, backdropFilter: 'blur(16px)', borderBottom: `1px solid ${border}` }}>
-        <div style={{ maxWidth: 620, margin: '0 auto', padding: '0 24px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ fontSize: '.78rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: text, textDecoration: 'none' }}>James Ignacio</Link>
-          {showBack
-            ? <button onClick={backFn} style={{ background: 'none', border: 'none', color: muted, fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>← Back</button>
-            : <Link href="/" style={{ fontSize: '.78rem', color: muted, textDecoration: 'none' }}>← Back to site</Link>
-          }
-        </div>
-        <ProgressBar step={step - 1} total={totalSteps} />
-      </header>
-    )
-  }
-
-  // ── Wrapper ────────────────────────────────────────────────────────────────
-  function Wrap({ children }: { children: React.ReactNode }) {
-    return (
-      <main style={{ minHeight: '100vh', background: bg, padding: '40px 24px 80px' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto' }}>{children}</div>
-      </main>
-    )
-  }
-
-  // ── Q label ────────────────────────────────────────────────────────────────
-  function QLabel({ q, title, sub }: { q: string; title: string; sub?: string }) {
-    return (
-      <div style={{ marginBottom: '32px' }}>
-        <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>{q}</p>
-        <h1 style={{ fontSize: 'clamp(1.8rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: sub ? '8px' : 0 }}>{title}</h1>
-        {sub && <p style={{ fontSize: '.88rem', color: muted }}>{sub}</p>}
-      </div>
-    )
-  }
-
-  // ── Date summary pill ──────────────────────────────────────────────────────
-  function DatePill() {
-    if (!selectedDate) return null
-    return (
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '999px', background: 'rgba(196,122,58,.1)', border: `1px solid rgba(196,122,58,.25)`, marginBottom: '24px' }}>
-        <span style={{ fontSize: '.85rem' }}>📅</span>
-        <span style={{ fontSize: '.82rem', fontWeight: 700, color: accent }}>{selectedDate}</span>
-      </div>
-    )
-  }
-
   // ── STEP 1: Date ───────────────────────────────────────────────────────────
   if (step === 1) return (
     <>
-      <Header />
+      <BookingHeader step={step} totalSteps={totalSteps} />
       <Wrap>
         <QLabel q="Question 1" title="When's your event?" sub="Pick an available date. Amber dates are taken." />
 
@@ -335,9 +331,9 @@ function BookingPage() {
     ]
     return (
       <>
-        <Header showBack backFn={() => setStep(1)} />
+        <BookingHeader step={step} totalSteps={totalSteps} showBack backFn={() => setStep(1)} />
         <Wrap>
-          <DatePill />
+          <DatePill selectedDate={selectedDate} />
           <QLabel q="Question 2" title="What are you looking for?" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
             {options.map(o => {
@@ -373,9 +369,9 @@ function BookingPage() {
     }
     return (
       <>
-        <Header showBack backFn={() => setStep(2)} />
+        <BookingHeader step={step} totalSteps={totalSteps} showBack backFn={() => setStep(2)} />
         <Wrap>
-          <DatePill />
+          <DatePill selectedDate={selectedDate} />
           <QLabel q="Question 3" title="How many guests are you expecting?" sub="This helps me recommend the right package for your event." />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
             {PHOTOGRAPHY_TIERS.map((tier, i) => {
@@ -423,9 +419,9 @@ function BookingPage() {
     const extraRate = intent === 'photobooth' ? EXTRA_HR_SOLO : EXTRA_HR_BUNDLE
     return (
       <>
-        <Header showBack backFn={() => setStep(intent === 'photobooth' ? 2 : 3)} />
+        <BookingHeader step={step} totalSteps={totalSteps} showBack backFn={() => setStep(intent === 'photobooth' ? 2 : 3)} />
         <Wrap>
-          <DatePill />
+          <DatePill selectedDate={selectedDate} />
           <QLabel q={intent === 'photobooth' ? 'Question 3' : 'Question 4'} title="How many hours do you need?" sub="Base package is 3 hours. Extra hours can be added." />
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {hourOptions.map(h => {
@@ -460,9 +456,9 @@ function BookingPage() {
   // ── STEP 5: Recommendation ─────────────────────────────────────────────────
   if (step === 5 && rec) return (
     <>
-      <Header showBack backFn={() => setStep(4)} />
+      <BookingHeader step={step} totalSteps={totalSteps} showBack backFn={() => setStep(4)} />
       <Wrap>
-        <DatePill />
+        <DatePill selectedDate={selectedDate} />
         <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: accent, marginBottom: '8px' }}>My recommendation</p>
         <h1 style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 800, letterSpacing: '-.03em', color: text, marginBottom: '24px' }}>
           Here&rsquo;s what I&rsquo;d suggest for you.
@@ -556,9 +552,9 @@ function BookingPage() {
   // ── STEP 6: Contact ────────────────────────────────────────────────────────
   if (step === 6) return (
     <>
-      <Header showBack backFn={() => setStep(5)} />
+      <BookingHeader step={step} totalSteps={totalSteps} showBack backFn={() => setStep(5)} />
       <Wrap>
-        <DatePill />
+        <DatePill selectedDate={selectedDate} />
         <QLabel q="Almost done" title="How do we reach you?" sub="Just your name and number — I'll handle the rest." />
 
         <form onSubmit={handleSubmit} noValidate>
@@ -662,7 +658,7 @@ function BookingPage() {
   // ── STEP 7: Success ────────────────────────────────────────────────────────
   return (
     <>
-      <Header />
+      <BookingHeader step={step} totalSteps={totalSteps} />
       <main style={{ minHeight: '100vh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
         <div style={{ maxWidth: 480, width: '100%', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: accent, color: '#1a1208', fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>✓</div>
