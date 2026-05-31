@@ -46,6 +46,14 @@ export default function Testimonials() {
             </div>
           ))}
         </div>
+
+        {/* Trusted by strip */}
+        <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #2e2318', textAlign: 'center' }}>
+          <p style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9a8b7a', marginBottom: '16px' }}>Trusted by</p>
+          <p style={{ fontSize: '.85rem', color: '#6b5f52', lineHeight: 2 }}>
+            Kenny Rogers Roasters &nbsp;·&nbsp; Ateneo de Zamboanga &nbsp;·&nbsp; Mahad Al-Qur&rsquo;an Wal Hadith &nbsp;·&nbsp; South East Learning Center &nbsp;·&nbsp; Camino Nuevo Day Care
+          </p>
+        </div>
       </div>
     </section>
   )

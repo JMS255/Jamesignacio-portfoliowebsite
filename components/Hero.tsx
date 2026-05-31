@@ -12,7 +12,7 @@ export default function Hero() {
           <span>as it felt.</span>
         </h1>
         <p className="hero__sub">
-          Photobooth rentals, event photography, and content creation<br />
+          Photobooth service, event photography, and content creation<br />
           in Zamboanga City — 50+ events covered.
         </p>
         <div className="hero__actions">
