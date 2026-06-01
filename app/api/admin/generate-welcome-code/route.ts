@@ -9,13 +9,13 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null)
-  if (!body?.clientPhone || !body?.clientName) {
-    return NextResponse.json({ error: 'Missing clientPhone or clientName' }, { status: 400 })
+  if (!body?.clientName) {
+    return NextResponse.json({ error: 'Missing clientName' }, { status: 400 })
   }
 
   try {
     const firstName = body.clientName.trim().split(' ')[0]
-    const code = await generatePersonalPromoCode(body.clientPhone, 500, firstName)
+    const code = await generatePersonalPromoCode(body.clientPhone?.trim() || 'NOPHONE', 500, firstName)
     return NextResponse.json({ ok: true, code })
   } catch (e) {
     console.error('generate-welcome-code:', e)

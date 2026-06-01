@@ -134,8 +134,8 @@ export default function AdminConfirmPage() {
           <Field label="Client Name">
             <input value={wcName} onChange={e => setWcName(e.target.value)} placeholder="e.g. Maria Santos" required style={s} />
           </Field>
-          <Field label="Client Phone">
-            <input value={wcPhone} onChange={e => setWcPhone(e.target.value)} placeholder="09XXXXXXXXX" required style={s} />
+          <Field label="Client Phone (optional — leave blank if unknown)">
+            <input value={wcPhone} onChange={e => setWcPhone(e.target.value)} placeholder="09XXXXXXXXX" style={s} />
           </Field>
           <Btn loading={wcLoading} label="Generate Welcome Code" />
         </form>
