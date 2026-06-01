@@ -10,16 +10,26 @@ function getDb() {
 interface ReferralCodeRow { code: string }
 interface VoucherRow { code: string; amount: number; expires_at: string | null }
 
-export async function GET(req: NextRequest) {
-  const phone = req.nextUrl.searchParams.get('phone')?.trim()
-  if (!phone) return NextResponse.json({ error: 'Missing phone' }, { status: 400 })
+function phoneVariants(raw: string): string[] {
+  const p = raw.replace(/[\s\-().]/g, '')
+  const variants = new Set<string>([p])
+  if (p.startsWith('+63'))                       { variants.add('0' + p.slice(3)) }
+  else if (p.startsWith('63') && p.length === 12){ variants.add('+' + p); variants.add('0' + p.slice(2)) }
+  else if (p.startsWith('0')  && p.length === 11){ variants.add('+63' + p.slice(1)) }
+  return Array.from(variants)
+}
 
-  const db = getDb()
+export async function GET(req: NextRequest) {
+  const raw = req.nextUrl.searchParams.get('phone')?.trim()
+  if (!raw) return NextResponse.json({ error: 'Missing phone' }, { status: 400 })
+
+  const db       = getDb()
+  const variants = phoneVariants(raw)
 
   const { data: refRow } = await db
     .from('referral_codes')
     .select('code')
-    .eq('referrer_phone', phone)
+    .in('referrer_phone', variants)
     .eq('active', true)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -29,7 +39,7 @@ export async function GET(req: NextRequest) {
   const { data: vouchers } = await db
     .from('promo_codes')
     .select('code, amount, expires_at')
-    .eq('owner_phone', phone)
+    .in('owner_phone', variants)
     .eq('active', true)
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .returns<VoucherRow[]>()
