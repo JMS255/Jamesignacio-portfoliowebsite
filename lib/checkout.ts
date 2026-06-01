@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const REFERRAL_DISCOUNT = 200   // ₱ off for new client using a referral code
+const REFERRAL_DISCOUNT_BUNDLE  = 500
+const REFERRAL_DISCOUNT_SINGLE  = 200
+
+function getReferralDiscount(packageName?: string): number {
+  return packageName?.toLowerCase().includes('bundle')
+    ? REFERRAL_DISCOUNT_BUNDLE
+    : REFERRAL_DISCOUNT_SINGLE
+}
 const MIN_XENDIT_AMOUNT = 500   // floor — absolute minimum charge
 
 const VOUCHER_AMOUNTS: Record<string, number> = {
@@ -112,7 +119,7 @@ export async function calculateCheckout(input: CheckoutInput): Promise<CheckoutB
       if (existing) {
         errors.push('You have already used this referral code.')
       } else {
-        referralDiscount = REFERRAL_DISCOUNT
+        referralDiscount = getReferralDiscount(input.packageName)
         price -= referralDiscount
       }
     }
@@ -166,6 +173,29 @@ export async function awardReferrerVoucher(
     applies_to:  null,
   })
   return { code, amount, expiresAt }
+}
+
+export async function generatePersonalPromoCode(
+  clientPhone: string,
+  amount: number,
+  label?: string,
+) {
+  const db   = getDb()
+  const code = label
+    ? `WELCOMEBACK-${label.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12)}-${generateReferralCode().slice(0, 4)}`
+    : `PROMO-${generateReferralCode()}`
+  await db.from('promo_codes').insert({
+    code,
+    type:        'flat',
+    amount,
+    expires_at:  null,
+    max_uses:    1,
+    used_count:  0,
+    active:      true,
+    owner_phone: clientPhone,
+    applies_to:  null,
+  })
+  return code
 }
 
 export async function savePendingBooking(data: {

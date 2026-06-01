@@ -5,6 +5,7 @@ import {
   recordPromoUse,
   recordReferralUse,
   generateReferralCode,
+  generatePersonalPromoCode,
 } from '@/lib/checkout'
 
 function getDb() {
@@ -82,14 +83,21 @@ export async function POST(req: NextRequest) {
     })
   } catch (e) { console.error('insert referral_codes:', e) }
 
-  // 4. Mark confirmed
+  // 4. Generate ₱200 personal promo code for the new client
+  let personalPromoCode: string | null = null
+  try {
+    personalPromoCode = await generatePersonalPromoCode(client_phone, 200)
+  } catch (e) { console.error('generatePersonalPromoCode:', e) }
+
+  // 5. Mark confirmed
   await db.from('pending_bookings').update({ confirmed: true }).eq('booking_ref', body.bookingRef)
 
   return NextResponse.json({
-    ok:                true,
+    ok:                 true,
     clientReferralCode: newCode,
-    voucherCode:        voucherResult?.code        ?? null,
-    voucherAmount:      voucherResult?.amount       ?? null,
-    voucherExpiry:      voucherResult?.expiresAt    ?? null,
+    personalPromoCode,
+    voucherCode:        voucherResult?.code     ?? null,
+    voucherAmount:      voucherResult?.amount    ?? null,
+    voucherExpiry:      voucherResult?.expiresAt ?? null,
   })
 }
