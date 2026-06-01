@@ -65,6 +65,12 @@ export default function AdminConfirmPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', fontFamily: 'var(--font-inter, sans-serif)', gap: '1.5rem' }}>
 
+      {/* ── Shared Secret ───────────────────────────────────────── */}
+      <div style={{ background: '#141414', border: '1px solid #f59e0b44', borderRadius: '1rem', padding: '1.25rem 2rem', width: '100%', maxWidth: '460px' }}>
+        <label style={{ color: '#888', fontSize: '0.78rem', display: 'block', marginBottom: '0.4rem' }}>Admin Secret <span style={{ color: '#f59e0b' }}>— enter once, used by both sections below</span></label>
+        <input type="password" value={secret} onChange={e => setSecret(e.target.value)} placeholder="Your admin secret" style={{ width: '100%', background: '#1e1e1e', border: '1px solid #444', borderRadius: '0.5rem', padding: '0.6rem 0.75rem', color: '#f5f5f5', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' }} />
+      </div>
+
       {/* ── Confirm Booking ─────────────────────────────────────── */}
       <div style={{ background: '#141414', border: '1px solid #2a2a2a', borderRadius: '1rem', padding: '2rem', width: '100%', maxWidth: '460px' }}>
         <h1 style={{ color: '#f5f5f5', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.2rem' }}>Confirm Booking</h1>
@@ -73,9 +79,6 @@ export default function AdminConfirmPage() {
         <form onSubmit={handleConfirm} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           <Field label="Booking Ref">
             <input value={bookingRef} onChange={e => setBookingRef(e.target.value)} placeholder="e.g. AB12CD" required style={s} />
-          </Field>
-          <Field label="Admin Secret">
-            <input type="password" value={secret} onChange={e => setSecret(e.target.value)} required style={s} />
           </Field>
           <Btn loading={loading} label="Confirm Payment" />
         </form>
@@ -114,7 +117,6 @@ export default function AdminConfirmPage() {
           <Field label="Client Phone">
             <input value={wcPhone} onChange={e => setWcPhone(e.target.value)} placeholder="09XXXXXXXXX" required style={s} />
           </Field>
-          <p style={{ color: '#444', fontSize: '0.75rem', marginTop: '-0.4rem' }}>Uses the Admin Secret entered above.</p>
           <Btn loading={wcLoading} label="Generate Welcome Code" />
         </form>
 
