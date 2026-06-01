@@ -712,6 +712,11 @@ function BookingPage() {
               </div>
             ))}
             {codeError && <p style={{ fontSize: '.78rem', color: '#f87171', marginTop: '4px' }}>{codeError}</p>}
+            {appliedPromo.startsWith('WELCOMEBACK-') && (
+              <p style={{ fontSize: '.82rem', color: accent, fontWeight: 600, marginTop: '8px' }}>
+                Welcome back{name.trim() ? `, ${name.trim().split(' ')[0]}` : ''}! 🎉 Great to have you again.
+              </p>
+            )}
             {discount && (discount.promoDiscount + discount.referralDiscount + discount.creditDiscount) > 0 && (
               <div style={{ marginTop: '12px', padding: '16px 18px', background: 'rgba(196,122,58,.1)', border: `1.5px solid ${accent}`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
