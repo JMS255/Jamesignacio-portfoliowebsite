@@ -24,6 +24,12 @@ export default function AdminConfirmPage() {
   const [wcCode,    setWcCode]    = useState<string | null>(null)
   const [wcError,   setWcError]   = useState<string | null>(null)
 
+  // Lookup state
+  const [luPhone,   setLuPhone]   = useState('')
+  const [luLoading, setLuLoading] = useState(false)
+  const [luResult,  setLuResult]  = useState<{ promos: { code: string; amount: number; expires_at: string | null; active: boolean; used_count: number }[]; referrals: { code: string; active: boolean; booking_ref: string }[] } | null>(null)
+  const [luError,   setLuError]   = useState<string | null>(null)
+
   async function handleConfirm(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError(null); setResult(null)
@@ -54,6 +60,20 @@ export default function AdminConfirmPage() {
       setWcCode(data.code)
     } catch { setWcError('Network error') }
     finally { setWcLoading(false) }
+  }
+
+  async function handleLookup(e: React.FormEvent) {
+    e.preventDefault()
+    setLuLoading(true); setLuError(null); setLuResult(null)
+    try {
+      const res  = await fetch(`/api/admin/lookup-codes?phone=${encodeURIComponent(luPhone.trim())}`, {
+        headers: { 'Authorization': `Bearer ${secret}` },
+      })
+      const data = await res.json()
+      if (!res.ok) { setLuError(data.error ?? 'Something went wrong'); return }
+      setLuResult(data)
+    } catch { setLuError('Network error') }
+    finally { setLuLoading(false) }
   }
 
   const s: React.CSSProperties = {
@@ -128,6 +148,41 @@ export default function AdminConfirmPage() {
         )}
       </div>
 
+      {/* ── Lookup Existing Codes ───────────────────────────────── */}
+      <div style={{ background: '#141414', border: '1px solid #2a2a2a', borderRadius: '1rem', padding: '2rem', width: '100%', maxWidth: '460px' }}>
+        <h2 style={{ color: '#f5f5f5', fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.2rem' }}>Look Up Client Codes</h2>
+        <p style={{ color: '#555', fontSize: '0.8rem', marginBottom: '1.25rem' }}>Find all codes tied to a phone number.</p>
+
+        <form onSubmit={handleLookup} style={{ display: 'flex', gap: '0.5rem' }}>
+          <input value={luPhone} onChange={e => setLuPhone(e.target.value)} placeholder="09XXXXXXXXX or +639..." required style={{ ...s, flex: 1 }} />
+          <button type="submit" disabled={luLoading} style={{ background: luLoading ? '#333' : '#f59e0b', color: luLoading ? '#666' : '#000', border: 'none', borderRadius: '0.5rem', padding: '0.6rem 1rem', fontWeight: 700, fontSize: '0.9rem', cursor: luLoading ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}>
+            {luLoading ? '…' : 'Find'}
+          </button>
+        </form>
+
+        {luError && <ErrorBox msg={luError} />}
+
+        {luResult && (
+          <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {luResult.promos.length === 0 && luResult.referrals.length === 0 && (
+              <p style={{ color: '#555', fontSize: '0.82rem' }}>No codes found for this number.</p>
+            )}
+            {luResult.referrals.map(r => (
+              <LookupRow key={r.code} code={r.code} label="Referral Code" meta={r.active ? 'Active' : 'Inactive'} active={r.active} />
+            ))}
+            {luResult.promos.map(p => (
+              <LookupRow
+                key={p.code}
+                code={p.code}
+                label={`₱${p.amount} off`}
+                meta={p.used_count > 0 ? 'Already used' : p.active ? 'Active' : 'Inactive'}
+                active={p.active && p.used_count === 0}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
@@ -153,6 +208,24 @@ function ErrorBox({ msg }: { msg: string }) {
   return (
     <div style={{ marginTop: '1rem', background: '#2a1010', border: '1px solid #5a1010', borderRadius: '0.5rem', padding: '0.75rem', color: '#f87171', fontSize: '0.85rem' }}>
       {msg}
+    </div>
+  )
+}
+
+function LookupRow({ code, label, meta, active }: { code: string; label: string; meta: string; active: boolean }) {
+  const [copied, setCopied] = useState(false)
+  function copy() { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+  return (
+    <div style={{ background: '#1a1a1a', border: `1px solid ${active ? '#2e2e2e' : '#1e1e1e'}`, borderRadius: '0.75rem', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: active ? 1 : 0.45 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ color: active ? '#f59e0b' : '#666', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.04em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{code}</p>
+        <p style={{ color: '#555', fontSize: '0.72rem', marginTop: '2px' }}>{label} · {meta}</p>
+      </div>
+      {active && (
+        <button onClick={copy} style={{ background: copied ? '#166534' : '#262626', color: copied ? '#4ade80' : '#aaa', border: '1px solid #333', borderRadius: '0.4rem', padding: '0.3rem 0.6rem', fontSize: '0.72rem', cursor: 'pointer', flexShrink: 0 }}>
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      )}
     </div>
   )
 }
