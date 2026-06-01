@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
-const REFERRAL_DISCOUNT   = 200   // ₱ off for new client using a referral code
-const MAX_CREDIT_DISCOUNT = 200   // max ₱ of in-store credit per booking
-const MIN_XENDIT_AMOUNT   = 500   // floor — absolute minimum sent to Xendit
+const REFERRAL_DISCOUNT = 200   // ₱ off for new client using a referral code
+const MIN_XENDIT_AMOUNT = 500   // floor — absolute minimum charge
+
+const VOUCHER_AMOUNTS: Record<string, number> = {
+  'Photobooth Service':                  200,
+  'Event Photography':                   300,
+  'Photobooth + Photography Bundle':     500,
+}
+const VOUCHER_DEFAULT = 200
 
 // Use service role key for all server-side DB operations
 function getDb() {
@@ -24,9 +30,7 @@ export interface CheckoutBreakdown {
   promoDiscount:    number
   afterPromo:       number
   referralDiscount: number
-  creditDiscount:   number
-  creditUsed:       number
-  final:            number   // max(result, MIN_XENDIT_AMOUNT)
+  final:            number
   errors:           string[]
 }
 
@@ -45,18 +49,12 @@ interface ReferralRow {
   active: boolean
 }
 
-interface CreditRow {
-  balance: number
-}
-
 export async function calculateCheckout(input: CheckoutInput): Promise<CheckoutBreakdown> {
   const db = getDb()
   const errors: string[] = []
   let price = input.basePrice
   let promoDiscount    = 0
   let referralDiscount = 0
-  let creditDiscount   = 0
-  let creditUsed       = 0
 
   // ── Step 2: Promo code ──────────────────────────────────────────────────────
   if (input.promoCode) {
@@ -118,28 +116,19 @@ export async function calculateCheckout(input: CheckoutInput): Promise<CheckoutB
         price -= referralDiscount
       }
     }
-  } else {
-    // No referral code — check for in-store credits
-    const { data: credit } = await db
-      .from('store_credits')
-      .select('balance')
-      .eq('phone', input.clientPhone)
-      .single<CreditRow>()
-
-    if (credit && credit.balance > 0) {
-      creditUsed    = Math.min(credit.balance, MAX_CREDIT_DISCOUNT)
-      creditDiscount = creditUsed
-      price -= creditDiscount
-    }
   }
 
-  // ── Step 4: Floor ────────────────────────────────────────────────────────────
   const final = Math.max(price, MIN_XENDIT_AMOUNT)
 
-  return { base: input.basePrice, promoDiscount, afterPromo, referralDiscount, creditDiscount, creditUsed, final, errors }
+  return { base: input.basePrice, promoDiscount, afterPromo, referralDiscount, final, errors }
 }
 
-// ── DB write helpers (called only after Xendit payment confirmed) ──────────────
+// ── DB write helpers (called after GCash deposit confirmed) ───────────────────
+
+export function generateReferralCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
 
 export async function recordPromoUse(code: string) {
   const db = getDb()
@@ -155,27 +144,45 @@ export async function recordReferralUse(referralCode: string, clientPhone: strin
   })
 }
 
-export async function spendCredits(phone: string, amount: number, bookingRef: string) {
-  const db = getDb()
-  // Deduct balance
-  await db.rpc('deduct_store_credit', { p_phone: phone, p_amount: amount })
-  // Audit trail
-  await db.from('credit_transactions').insert({
-    phone, amount: -amount, reason: 'booking_discount', booking_ref: bookingRef,
+export async function awardReferrerVoucher(
+  referrerPhone: string,
+  bookingRef: string,
+  packageName?: string,
+) {
+  const db     = getDb()
+  const amount = VOUCHER_AMOUNTS[packageName ?? ''] ?? VOUCHER_DEFAULT
+  const code   = `VCH-${generateReferralCode()}`
+  const expiresAt = new Date()
+  expiresAt.setMonth(expiresAt.getMonth() + 6)
+  await db.from('promo_codes').insert({
+    code,
+    type:        'flat',
+    amount,
+    expires_at:  expiresAt.toISOString(),
+    max_uses:    1,
+    used_count:  0,
+    active:      true,
+    owner_phone: referrerPhone,
+    applies_to:  null,
   })
+  return { code, amount, expiresAt }
 }
 
-export async function awardReferrerCredit(referrerPhone: string, bookingRef: string) {
+export async function savePendingBooking(data: {
+  bookingRef:    string
+  clientPhone:   string
+  clientName?:   string
+  packageName?:  string
+  referralCode?: string
+  promoCode?:    string
+}) {
   const db = getDb()
-  // Upsert: add ₱200 to referrer's balance
-  await db.rpc('add_store_credit', { p_phone: referrerPhone, p_amount: REFERRAL_DISCOUNT })
-  // Audit trail
-  await db.from('credit_transactions').insert({
-    phone: referrerPhone, amount: REFERRAL_DISCOUNT, reason: 'referral_reward', booking_ref: bookingRef,
+  await db.from('pending_bookings').upsert({
+    booking_ref:   data.bookingRef,
+    client_phone:  data.clientPhone,
+    client_name:   data.clientName   ?? null,
+    package_name:  data.packageName  ?? null,
+    referral_code: data.referralCode ?? null,
+    promo_code:    data.promoCode    ?? null,
   })
-}
-
-export function generateReferralCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }

@@ -244,8 +244,22 @@ function BookingPage() {
           _subject: `Booking [${ref}] — ${rec?.name} on ${selectedDate}`,
         }),
       })
-      if (res.ok) { setBookingRef(ref); setStep(7) }
-      else setError('Something went wrong. Please try again.')
+      if (res.ok) {
+        setBookingRef(ref)
+        setStep(7)
+        fetch('/api/referral/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingRef:   ref,
+            clientPhone:  phone,
+            clientName:   name,
+            packageName:  rec?.name,
+            referralCode: appliedReferral || undefined,
+            promoCode:    appliedPromo    || undefined,
+          }),
+        }).catch(() => {})
+      } else setError('Something went wrong. Please try again.')
     } catch { setError('Could not send. Check your connection.') }
     setSubmitting(false)
   }
@@ -815,6 +829,16 @@ function BookingPage() {
             <div style={{ padding: '10px 14px', background: 'rgba(196,122,58,.08)', border: `1px solid rgba(196,122,58,.2)`, borderRadius: '8px', fontSize: '.75rem', color: muted, lineHeight: 1.65 }}>
               ⚠️ After paying, send your GCash screenshot to Messenger with reference <strong style={{ color: accent, fontFamily: 'monospace' }}>{bookingRef}</strong>
             </div>
+          </div>
+
+          <div style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.15)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '.82rem', color: '#d97706', fontWeight: 600, marginBottom: '4px' }}>🎁 Earn rewards when you refer friends</p>
+            <p style={{ fontSize: '.78rem', color: muted, lineHeight: 1.65, marginBottom: '10px' }}>
+              Once your deposit is confirmed, you&rsquo;ll get a personal referral code. Share it — friends get ₱200 off, and you earn a discount voucher for your next event.
+            </p>
+            <Link href="/referral" style={{ fontSize: '.78rem', color: '#f59e0b', textDecoration: 'none', fontWeight: 600 }}>
+              Find your referral code →
+            </Link>
           </div>
 
           <a href="https://m.me/craftifylephotobooth" target="_blank" rel="noopener noreferrer"

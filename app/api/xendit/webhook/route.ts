@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import {
-  awardReferrerCredit,
+  awardReferrerVoucher,
   recordPromoUse,
   recordReferralUse,
-  spendCredits,
   generateReferralCode,
 } from '@/lib/checkout'
 
@@ -57,14 +56,9 @@ export async function POST(req: NextRequest) {
         .single<{ referrer_phone: string }>()
 
       if (ref?.referrer_phone) {
-        await awardReferrerCredit(ref.referrer_phone, bookingRef)
+        await awardReferrerVoucher(ref.referrer_phone, bookingRef)
       }
-    } catch (e) { console.error('awardReferrerCredit error:', e) }
-  } else if (clientPhone && body.metadata?.creditUsed > 0) {
-    // Deduct in-store credits that were applied at checkout
-    try {
-      await spendCredits(clientPhone, Number(body.metadata.creditUsed), bookingRef)
-    } catch (e) { console.error('spendCredits error:', e) }
+    } catch (e) { console.error('awardReferrerVoucher error:', e) }
   }
 
   // ── 3. Generate referral code for this new client ────────────────────────
