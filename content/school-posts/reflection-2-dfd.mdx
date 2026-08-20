@@ -1,0 +1,36 @@
+---
+title: "Reflection 2 — Creating a Data Flow Diagram (DFD)"
+date: 2026-08-20
+subjects: ["SAD"]
+excerpt: A DFD isn't a flowchart — it doesn't care about order, decisions, or timing. It only cares about one thing — where does the data go. That distinction was harder to internalize than I expected.
+readTime: 4 min read
+---
+
+> **TL;DR:** A DFD only tracks *where data moves* — not the order things happen in, not decisions, not timing. The hardest part wasn't drawing the shapes, it was unlearning the urge to draw a flowchart instead.
+
+Our DFD activity had us map out a process from scratch — I used my own booking flow at Craftifyle as the example, since it's the one system I actually know end-to-end. That turned out to be the most useful part of the whole exercise.
+
+## New Insights
+
+**A DFD has exactly four building blocks, and mixing them up breaks the whole diagram:**
+
+1. **External entities** — sources or destinations of data outside the system (a client, a payment gateway)
+2. **Processes** — verb phrases that transform data ("Validate Booking," not "Booking")
+3. **Data stores** — where data rests (a bookings table, a client list)
+4. **Data flows** — the labeled arrows connecting all of the above
+
+The insight that actually landed: **a DFD is not a flowchart.** I kept wanting to add decision diamonds ("if payment fails, do X") because that's how I think about my own booking system's logic. But a DFD doesn't show control flow, sequence, or conditions at all — it only shows *what data has to exist for a process to do its job, and what data comes out of it.* Once I stopped trying to show "what happens when," the diagram got a lot cleaner.
+
+**The other insight was leveling.** You start with a context diagram — the whole system as one process, showing only what crosses its boundary with the outside world. Then you decompose that single process into a Level 1 DFD, breaking it into its major sub-processes. For my booking flow, "Handle Booking" on the context diagram became "Validate Booking," "Check Availability," and "Generate Invoice" on Level 1 — and the *inputs and outputs of the whole group had to still match the context diagram exactly.* That matching rule is called balancing, and it's what actually forces the diagram to be logically consistent instead of just a nice-looking chart.
+
+## Concepts I Want to Read More On
+
+- **Gane-Sarson vs. Yourdon-DeMarco notation.** We used one notation style in class, but I've seen the other symbol set online (circles vs. rounded rectangles for processes) and want to understand if there's an actual functional difference or if it's purely stylistic.
+- **When to stop decomposing.** Is there a rule for when a process is "primitive" enough to stop breaking down, or is that just judgment call based on project scope?
+- **Logical vs. physical DFDs.** This came up briefly — a logical DFD describes *what* the system does, a physical one adds *how* (which department, which software). I want to see a real side-by-side example of the same process drawn both ways.
+
+## Confusion or Challenges
+
+**Telling a data store apart from an external entity tripped me up more than once.** My instinct was to treat anything "outside the process box" as an external entity, but a data store can also sit outside a specific process while still being fully inside the system boundary. The test I landed on — does this thing *originate or consume* data on its own (external entity), or does it just *hold* data for later (data store) — helped, but I'm not confident I'd get it right every time on a diagram I didn't build myself.
+
+**The other challenge was avoiding "black holes" and "miracles."** A black hole is a process with data going in and nothing coming out; a miracle is the reverse — output with no input. I drew both by accident on my first pass because I was focused on getting the boxes right and not tracing every arrow back to its source. It made me realize a DFD isn't really "correct" until you've traced every single flow twice — once forward, once backward — to make sure nothing dead-ends.
