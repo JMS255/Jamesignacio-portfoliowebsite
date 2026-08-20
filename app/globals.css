@@ -583,6 +583,29 @@ button { font-family: inherit; cursor: pointer; }
   max-width: 660px;
 }
 
+.school-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 40px;
+  border-bottom: 1px solid var(--border);
+}
+.school-tab {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 10px 4px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+}
+.school-tab:hover { color: var(--text); }
+.school-tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ===== PLAYBOOKS ===== */
 .playbooks-grid {
   display: grid;

@@ -8,6 +8,7 @@ const links = [
   { href: '#pricing',  label: 'Pricing' },
   { href: '/gallery',  label: 'Gallery' },
   { href: '/blog',     label: 'Writing' },
+  { href: '/school-blog', label: 'School Blog' },
   { href: '/about',    label: 'About' },
 ]
 

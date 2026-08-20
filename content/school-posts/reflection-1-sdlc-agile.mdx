@@ -1,0 +1,42 @@
+---
+title: "Reflection 1 — Systems Development Approaches and Agile Methodology"
+date: 2026-08-11
+subjects: ["SAD", "SoftEng"]
+excerpt: Waterfall promises certainty, Agile promises adaptability — and after actually building software for my own business, I'm starting to see why real teams end up somewhere in between.
+readTime: 4 min read
+---
+
+> **TL;DR:** Waterfall and Agile aren't "old vs. new" — they're two different bets on where a project's risk lives. Waterfall bets on knowing everything up front. Agile bets on adapting fast when you don't. I'd already been doing the Agile bet by instinct while building my own CRM — I just didn't have the vocabulary for it yet.
+
+Going into this topic, my idea of "Agile" was pop-culture-level — sprints, standups, sticky notes on a whiteboard. Our discussion on systems development approaches filled in *why* those rituals exist, and what problem they're actually solving.
+
+## New Insights
+
+**Waterfall and Agile are both bets on where risk lives in a project.**
+
+Waterfall bets that you can know almost everything up front — requirements, design, scope. It front-loads analysis and design before a single line of code gets written, because the assumption is: the expensive mistake is *building the wrong thing*. That fits projects where change is costly or dangerous later, like a hospital records system or anything with heavy compliance requirements.
+
+Agile bets the opposite. It assumes you *can't* know everything up front, so the expensive mistake is *finding out you're wrong too late*. Instead of one long sequence, the project breaks into small iterations:
+
+1. Plan a little
+2. Build a little
+3. Show it to someone
+4. Adjust
+
+Mistakes get caught in weeks, not months.
+
+**This clicked because it's what already happened building my own CRM.** I didn't write a full spec before touching code. I built a booking tracker first, used it myself for a week, realized the invoice flow was more painful than the booking flow, and reprioritized around that. That's Agile — I just didn't have the words for it (sprint, backlog, iteration) until now.
+
+Seeing the formal Scrum structure — backlog, sprint planning, daily standups, sprint review, retrospective — was the real insight: the "adjust based on feedback" instinct I already had is a repeatable *methodology*, not just improvising.
+
+## Concepts I Want to Read More On
+
+- **Scaled Agile (SAFe).** Everything we covered assumed one small team. I want to know how the same principles hold up — or break down — across several teams whose sprints have to stay in sync.
+- **Hybrid models.** "Waterfall for planning, Agile for execution" comes up a lot. I want to see what that looks like on a real project timeline, not just as a buzzword.
+- **Story points vs. hours.** We touched on this briefly, but I don't yet get how a client-facing deadline gets negotiated when the unit of work (story points) isn't directly tied to time.
+
+## Confusion or Challenges
+
+**Documentation vs. speed.** Agile values "working software over comprehensive documentation." SAD teaches DFDs, ERDs, and use case diagrams. So when is it actually worth stopping to draw a full diagram versus just building and adjusting later? My guess is "it depends on project size and risk" — but I don't have a clean rule for *where* that line sits yet.
+
+**Agile assumes an available client.** It works best when a client or product owner can give constant feedback. In freelance work — the world I actually operate in — clients usually want a fixed price and fixed deadline up front, which pulls hard toward Waterfall-style planning even when Agile execution would build a better product. I haven't resolved this. My best guess right now: most real projects end up as a negotiated hybrid, not a textbook pure version of either model.
